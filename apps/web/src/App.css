@@ -403,6 +403,80 @@ thead th {
   gap: 24px;
 }
 
+.report-controls {
+  margin-bottom: 32px;
+  padding: 20px 0;
+  border-top: 1px solid #b1b4b6;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.report-controls label,
+.report-controls span {
+  display: block;
+}
+
+.report-controls span {
+  color: #0b0c0c;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.report-controls select {
+  min-width: min(480px, 100%);
+  border: 2px solid #0b0c0c;
+  border-radius: 0;
+  background: #ffffff;
+  color: #0b0c0c;
+  font: inherit;
+  padding: 8px;
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1px;
+  margin-bottom: 32px;
+  background: #b1b4b6;
+  border: 1px solid #b1b4b6;
+}
+
+.report-summary-grid div {
+  background: #f3f2f1;
+  padding: 16px;
+}
+
+.report-summary-grid span,
+.report-summary-grid strong {
+  display: block;
+}
+
+.report-summary-grid span {
+  color: #505a5f;
+  font-size: 16px;
+}
+
+.report-summary-grid strong {
+  color: #0b0c0c;
+  font-size: 20px;
+  margin-top: 8px;
+}
+
+.decision-panel {
+  margin-bottom: 32px;
+  padding: 20px;
+  border-left: 4px solid #1d70b8;
+  background: #f3f2f1;
+}
+
+.decision-panel h2 {
+  margin-bottom: 8px;
+}
+
+.comparison-grid {
+  margin-top: 36px;
+}
+
 .connector-page-item,
 .report-grid article {
   border-top: 2px solid #0b0c0c;
@@ -709,12 +783,14 @@ thead th {
   .scenario-grid,
   .summary-list div,
   .connector-page-grid,
-  .report-grid {
+  .report-grid,
+  .report-summary-grid {
     display: block;
   }
 
   .connector-page-item,
-  .report-grid article {
+  .report-grid article,
+  .report-summary-grid div {
     margin-bottom: 28px;
   }
 

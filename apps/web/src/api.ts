@@ -117,6 +117,29 @@ export type AssistantAnalysisPayload = {
   context_scope?: string
 }
 
+export type ScenarioComparison = {
+  project_id: string
+  scenario_count: number
+  scenarios: Array<{
+    scenario_id: string
+    engine: string
+    total_cost_million: number
+    renewable_share_percent: number
+    emissions_tonnes_co2e: number
+    curtailment_mwh: number
+    reliability_margin_percent: number
+    generation_mix: Array<{ label: string; mwh: number }>
+    cost_breakdown: Array<{ label: string; million: number }>
+  }>
+  indicators: {
+    best_value_scenario_id: string | null
+    lowest_emissions_scenario_id: string | null
+    highest_renewable_scenario_id: string | null
+    highest_risk_scenario_id: string | null
+    summary: string
+  }
+}
+
 export type CreateProjectPayload = {
   name: string
   owner: string
@@ -276,6 +299,32 @@ const fallbackResult: SimulationResult = {
     'Test a tighter grid import constraint against winter peak demand.',
     'Review curtailment around high-wind overnight periods.',
   ],
+}
+
+const fallbackComparison: ScenarioComparison = {
+  project_id: 'prj_nw_grid',
+  scenario_count: 1,
+  scenarios: [
+    {
+      scenario_id: fallbackResult.scenario_id,
+      engine: fallbackResult.engine,
+      total_cost_million: fallbackResult.total_cost_million,
+      renewable_share_percent: fallbackResult.renewable_share_percent,
+      emissions_tonnes_co2e: fallbackResult.emissions_tonnes_co2e,
+      curtailment_mwh: fallbackResult.curtailment_mwh,
+      reliability_margin_percent: fallbackResult.reliability_margin_percent,
+      generation_mix: fallbackResult.generation_mix,
+      cost_breakdown: fallbackResult.cost_breakdown,
+    },
+  ],
+  indicators: {
+    best_value_scenario_id: fallbackResult.scenario_id,
+    lowest_emissions_scenario_id: fallbackResult.scenario_id,
+    highest_renewable_scenario_id: fallbackResult.scenario_id,
+    highest_risk_scenario_id: fallbackResult.scenario_id,
+    summary:
+      'scn_nw_base is currently the only completed scenario available for comparison.',
+  },
 }
 
 const fallbackConnectors: DataConnector[] = [
@@ -438,6 +487,22 @@ export async function analyseScenario(
     ApiEnvelope<AssistantAnalysis>,
     AssistantAnalysisPayload
   >(`${simulationApiUrl}/assistant/analyse`, payload)
+
+  return response.data
+}
+
+export async function getScenarioComparison(
+  projectId: string,
+): Promise<ScenarioComparison> {
+  const response = await getJson<ApiEnvelope<ScenarioComparison>>(
+    `${simulationApiUrl}/projects/${projectId}/comparisons`,
+    {
+      data: {
+        ...fallbackComparison,
+        project_id: projectId,
+      },
+    },
+  )
 
   return response.data
 }
