@@ -129,6 +129,23 @@ button:hover {
   background: #005a30;
 }
 
+.link-button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #1d70b8;
+  padding: 0;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link-button:hover {
+  background: transparent;
+  color: #003078;
+}
+
 button:focus,
 a:focus {
   outline: 3px solid #ffdd00;
@@ -232,7 +249,8 @@ thead th {
 }
 
 .tag-review,
-.tag-running {
+.tag-running,
+.tag-ready {
   background: #d2e2f1;
   color: #144e81;
 }
@@ -275,10 +293,100 @@ thead th {
   margin-top: 3px;
 }
 
+.workspace-panel {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 2px solid #0b0c0c;
+}
+
+.summary-list {
+  margin: 20px 0 36px;
+  color: #0b0c0c;
+  border-top: 1px solid #b1b4b6;
+}
+
+.summary-list div {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  padding: 12px 0;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.summary-list dt {
+  font-weight: 700;
+}
+
+.summary-list dd {
+  margin: 0;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 36px;
+  align-items: start;
+}
+
+.result-panel {
+  background: #f3f2f1;
+  border-left: 4px solid #0b0c0c;
+  padding: 20px;
+}
+
+.result-panel h2 {
+  margin-bottom: 18px;
+}
+
+.result-panel h3 {
+  color: #0b0c0c;
+  font-size: 19px;
+  margin: 22px 0 8px;
+}
+
+.result-panel p {
+  font-size: 16px;
+  margin-bottom: 0;
+}
+
+.result-panel ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.result-panel li {
+  color: #0b0c0c;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.result-metrics {
+  margin: 0;
+}
+
+.result-metrics div {
+  padding: 10px 0;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.result-metrics dt {
+  color: #505a5f;
+  font-size: 16px;
+}
+
+.result-metrics dd {
+  margin: 2px 0 0;
+  color: #0b0c0c;
+  font-size: 24px;
+  font-weight: 700;
+}
+
 @media (max-width: 860px) {
   .header-inner,
   .phase-banner,
-  .two-column {
+  .two-column,
+  .scenario-grid,
+  .summary-list div {
     display: block;
   }
 
@@ -298,6 +406,10 @@ thead th {
     border-left: 0;
     padding-left: 0;
     margin-top: 36px;
+  }
+
+  .result-panel {
+    margin-top: 32px;
   }
 }
 

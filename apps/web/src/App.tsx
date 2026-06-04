@@ -1,51 +1,127 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  getLatestResult,
+  getProject,
+  getProjects,
+  getRecentSimulationJobs,
+  type Project,
+  type SimulationJob,
+  type SimulationResult,
+} from './api'
 import './App.css'
 
-const projects = [
-  {
-    name: 'North West grid reinforcement',
-    owner: 'Infrastructure Planning',
-    region: 'United Kingdom',
-    scenarios: 8,
-    status: 'Active',
-  },
-  {
-    name: 'Solar and storage capacity study',
-    owner: 'Energy Transition',
-    region: 'Arizona, United States',
-    scenarios: 5,
-    status: 'Review',
-  },
-  {
-    name: 'Urban heat network expansion',
-    owner: 'City Systems',
-    region: 'Manchester, United Kingdom',
-    scenarios: 12,
-    status: 'Active',
-  },
-]
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('en').format(value)
+}
 
-const jobs = [
-  {
-    id: 'SIM-1042',
-    model: 'PyPSA capacity expansion',
-    project: 'North West grid reinforcement',
-    status: 'Running',
-  },
-  {
-    id: 'SIM-1041',
-    model: 'pandapower load flow',
-    project: 'Solar and storage capacity study',
-    status: 'Complete',
-  },
-  {
-    id: 'SIM-1040',
-    model: 'NREL PySAM battery dispatch',
-    project: 'Urban heat network expansion',
-    status: 'Queued',
-  },
-]
+function formatPercent(value: number) {
+  return `${value.toFixed(1)}%`
+}
 
 function App() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [projectDetail, setProjectDetail] = useState<Project | null>(null)
+  const [jobs, setJobs] = useState<SimulationJob[]>([])
+  const [latestResult, setLatestResult] = useState<SimulationResult | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadWorkspace() {
+      const [projectData, jobData] = await Promise.all([
+        getProjects(),
+        getRecentSimulationJobs(),
+      ])
+
+      if (!isMounted) {
+        return
+      }
+
+      setProjects(projectData)
+      setJobs(jobData)
+      setSelectedProjectId((current) => current || projectData[0]?.id || '')
+      setIsLoading(false)
+    }
+
+    loadWorkspace()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedProjectId) {
+      return
+    }
+
+    let isMounted = true
+
+    async function loadProject() {
+      const detail = await getProject(selectedProjectId)
+
+      if (!isMounted) {
+        return
+      }
+
+      setProjectDetail(detail)
+    }
+
+    loadProject()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedProjectId])
+
+  const selectedScenario = projectDetail?.scenarios?.[0] ?? null
+
+  useEffect(() => {
+    if (!selectedProjectId || !selectedScenario) {
+      setLatestResult(null)
+      return
+    }
+
+    let isMounted = true
+    const scenarioId = selectedScenario.id
+
+    async function loadLatestResult() {
+      const result = await getLatestResult(selectedProjectId, scenarioId)
+
+      if (!isMounted) {
+        return
+      }
+
+      setLatestResult(result)
+    }
+
+    loadLatestResult()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedProjectId, selectedScenario])
+
+  const activeProjectCount = projects.filter(
+    (project) => project.status === 'active',
+  ).length
+
+  const scenarioCount = projects.reduce(
+    (total, project) => total + (project.scenarios_count ?? 0),
+    0,
+  )
+
+  const completedJobCount = jobs.filter((job) => job.status === 'complete').length
+
+  const selectedProjectName = useMemo(() => {
+    return (
+      projects.find((project) => project.id === selectedProjectId)?.name ??
+      'Selected project'
+    )
+  }, [projects, selectedProjectId])
+
   return (
     <div className="app-shell">
       <header className="service-header">
@@ -86,19 +162,19 @@ function App() {
         <section className="summary-grid" aria-label="Platform summary">
           <div className="summary-item">
             <span>Active projects</span>
-            <strong>18</strong>
+            <strong>{isLoading ? '-' : activeProjectCount}</strong>
           </div>
           <div className="summary-item">
             <span>Simulation jobs</span>
-            <strong>47</strong>
+            <strong>{isLoading ? '-' : jobs.length}</strong>
           </div>
           <div className="summary-item">
-            <span>Scenario runs</span>
-            <strong>1,284</strong>
+            <span>Scenarios</span>
+            <strong>{isLoading ? '-' : scenarioCount}</strong>
           </div>
           <div className="summary-item">
-            <span>Data connectors</span>
-            <strong>9</strong>
+            <span>Completed jobs</span>
+            <strong>{isLoading ? '-' : completedJobCount}</strong>
           </div>
         </section>
 
@@ -121,15 +197,21 @@ function App() {
                 </thead>
                 <tbody>
                   {projects.map((project) => (
-                    <tr key={project.name}>
+                    <tr key={project.id}>
                       <th scope="row">
-                        <a href="/projects">{project.name}</a>
+                        <button
+                          className="link-button"
+                          type="button"
+                          onClick={() => setSelectedProjectId(project.id)}
+                        >
+                          {project.name}
+                        </button>
                       </th>
                       <td>{project.owner}</td>
                       <td>{project.region}</td>
-                      <td>{project.scenarios}</td>
+                      <td>{project.scenarios_count ?? 0}</td>
                       <td>
-                        <span className={`tag tag-${project.status.toLowerCase()}`}>
+                        <span className={`tag tag-${project.status}`}>
                           {project.status}
                         </span>
                       </td>
@@ -151,15 +233,124 @@ function App() {
                   <div>
                     <strong>{job.id}</strong>
                     <span>{job.model}</span>
-                    <small>{job.project}</small>
+                    <small>{job.progress}% complete</small>
                   </div>
-                  <span className={`tag tag-${job.status.toLowerCase()}`}>
-                    {job.status}
-                  </span>
+                  <span className={`tag tag-${job.status}`}>{job.status}</span>
                 </li>
               ))}
             </ol>
           </aside>
+        </section>
+
+        <section className="workspace-panel" aria-labelledby="project-workspace">
+          <span className="caption">Project workspace</span>
+          <h2 id="project-workspace">{selectedProjectName}</h2>
+          {projectDetail ? (
+            <>
+              <dl className="summary-list">
+                <div>
+                  <dt>Region</dt>
+                  <dd>{projectDetail.region}</dd>
+                </div>
+                <div>
+                  <dt>Grid region</dt>
+                  <dd>{projectDetail.grid_region}</dd>
+                </div>
+                <div>
+                  <dt>Description</dt>
+                  <dd>{projectDetail.description}</dd>
+                </div>
+              </dl>
+
+              <div className="scenario-grid">
+                <div>
+                  <div className="section-heading">
+                    <h2>Scenarios</h2>
+                    <button type="button">Add scenario</button>
+                  </div>
+                  <div className="table-wrap">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Scenario</th>
+                          <th scope="col">Engine</th>
+                          <th scope="col">Horizon</th>
+                          <th scope="col">Peak load</th>
+                          <th scope="col">Target</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(projectDetail.scenarios ?? []).map((scenario) => (
+                          <tr key={scenario.id}>
+                            <th scope="row">{scenario.name}</th>
+                            <td>{scenario.engine}</td>
+                            <td>{scenario.horizon}</td>
+                            <td>{formatNumber(scenario.peak_load_mw)} MW</td>
+                            <td>
+                              {formatPercent(scenario.renewable_share_target)}
+                            </td>
+                            <td>
+                              <span className={`tag tag-${scenario.status}`}>
+                                {scenario.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <aside className="result-panel">
+                  <h2>Latest result</h2>
+                  {latestResult ? (
+                    <>
+                      <dl className="result-metrics">
+                        <div>
+                          <dt>Total cost</dt>
+                          <dd>£{latestResult.total_cost_million}m</dd>
+                        </div>
+                        <div>
+                          <dt>Renewable share</dt>
+                          <dd>
+                            {formatPercent(latestResult.renewable_share_percent)}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Emissions</dt>
+                          <dd>
+                            {formatNumber(
+                              latestResult.emissions_tonnes_co2e,
+                            )}{' '}
+                            tCO2e
+                          </dd>
+                        </div>
+                        <div>
+                          <dt>Reliability margin</dt>
+                          <dd>
+                            {formatPercent(
+                              latestResult.reliability_margin_percent,
+                            )}
+                          </dd>
+                        </div>
+                      </dl>
+                      <h3>Assistant-ready notes</h3>
+                      <ul>
+                        {latestResult.recommendations.map((recommendation) => (
+                          <li key={recommendation}>{recommendation}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p>No completed result is available for this scenario yet.</p>
+                  )}
+                </aside>
+              </div>
+            </>
+          ) : (
+            <p>Loading project workspace.</p>
+          )}
         </section>
       </main>
     </div>
