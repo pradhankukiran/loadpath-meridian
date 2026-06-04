@@ -2,23 +2,26 @@ from redis import Redis
 from redis.exceptions import RedisError
 
 from meridian_simulation.config import Settings
+from meridian_simulation.database import database_status
 
 
 def service_status(settings: Settings) -> dict:
     checks = {
+        "database": database_status(settings),
         "redis": redis_status(settings.redis_url),
         "modal_llm": "configured" if settings.modal_llm_endpoint else "not_configured",
         "nrel_api": "configured" if settings.nrel_api_key else "not_configured",
         "eia_api": "configured" if settings.eia_api_key else "not_configured",
     }
 
-    status = "ok" if checks["redis"] == "ok" else "degraded"
+    status = "ok" if checks["database"] == "ok" and checks["redis"] == "ok" else "degraded"
 
     return {
         "service": "loadpath-meridian-simulation",
         "status": status,
         "environment": settings.app_env,
         "checks": checks,
+        "queue_mode": "sync" if settings.sync_jobs else "celery",
         "frontend_origins": list(settings.frontend_origins),
     }
 

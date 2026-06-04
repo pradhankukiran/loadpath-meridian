@@ -13,8 +13,10 @@ dependencies = [
     "gunicorn>=22.0",
     "pydantic>=2.7",
     "python-dotenv>=1.0",
+    "pymysql>=1.1",
     "redis>=5.0",
     "requests>=2.32",
+    "sqlalchemy>=2.0",
 ]
 
 [project.optional-dependencies]

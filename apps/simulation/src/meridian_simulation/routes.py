@@ -6,9 +6,8 @@ from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
 from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
-from meridian_simulation.job_store import enqueue_job, list_recent_jobs
+from meridian_simulation.job_store import enqueue_job, latest_result as get_latest_result, list_recent_jobs
 from meridian_simulation.operations import service_status
-from meridian_simulation.results import LATEST_RESULTS
 
 api = Blueprint("api", __name__)
 
@@ -105,12 +104,16 @@ def import_scenario_dataset(project_id: str, scenario_id: str):
 
 @api.get("/simulations/recent")
 def recent_simulations():
-    return {"data": list_recent_jobs()}
+    return {"data": list_recent_jobs(current_app.config["MERIDIAN_SETTINGS"])}
 
 
 @api.get("/projects/<project_id>/scenarios/<scenario_id>/results/latest")
 def latest_result(project_id: str, scenario_id: str):
-    result = LATEST_RESULTS.get((project_id, scenario_id))
+    result = get_latest_result(
+        project_id,
+        scenario_id,
+        current_app.config["MERIDIAN_SETTINGS"],
+    )
 
     if result is None:
         return {"data": None}
@@ -120,7 +123,12 @@ def latest_result(project_id: str, scenario_id: str):
 
 @api.get("/projects/<project_id>/comparisons")
 def project_comparison(project_id: str):
-    return {"data": compare_project_scenarios(project_id)}
+    return {
+        "data": compare_project_scenarios(
+            project_id,
+            current_app.config["MERIDIAN_SETTINGS"],
+        )
+    }
 
 
 @api.post("/simulations")
@@ -134,7 +142,7 @@ def create_simulation():
     if payload.engine not in engine_ids:
         return jsonify({"errors": [{"msg": "Unknown simulation engine"}]}), 422
 
-    job = enqueue_job(payload.model_dump())
+    job = enqueue_job(payload.model_dump(), current_app.config["MERIDIAN_SETTINGS"])
 
     return jsonify(job), 202
 

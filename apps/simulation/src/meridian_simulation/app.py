@@ -1,12 +1,14 @@
 from flask import Flask, request
 
 from meridian_simulation.config import Settings
+from meridian_simulation.database import initialize_database
 from meridian_simulation.routes import api
 
 
 def create_app(settings: Settings | None = None) -> Flask:
     app = Flask(__name__)
     app.config["MERIDIAN_SETTINGS"] = settings or Settings.from_env()
+    initialize_database(app.config["MERIDIAN_SETTINGS"])
     app.register_blueprint(api, url_prefix="/api")
 
     @app.after_request

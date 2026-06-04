@@ -3,7 +3,7 @@ from __future__ import annotations
 import requests
 
 from meridian_simulation.data_store import list_datasets
-from meridian_simulation.results import LATEST_RESULTS
+from meridian_simulation.job_store import latest_result
 
 
 def analyse_scenario(
@@ -52,7 +52,7 @@ def analyse_scenario(
 
 
 def build_assistant_context(project_id: str, scenario_id: str, message: str) -> dict:
-    result = LATEST_RESULTS.get((project_id, scenario_id))
+    result = latest_result(project_id, scenario_id)
     datasets = list_datasets(project_id, scenario_id)
 
     return {

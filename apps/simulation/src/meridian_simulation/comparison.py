@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-from meridian_simulation.results import LATEST_RESULTS
+from meridian_simulation.config import Settings
+from meridian_simulation.job_store import project_results
 
 
-def compare_project_scenarios(project_id: str) -> dict:
-    results = [
-        result
-        for (result_project_id, _scenario_id), result in LATEST_RESULTS.items()
-        if result_project_id == project_id
-    ]
-
+def compare_project_scenarios(project_id: str, settings: Settings | None = None) -> dict:
+    results = project_results(project_id, settings)
     scenarios = [scenario_summary(result) for result in results]
 
     return {

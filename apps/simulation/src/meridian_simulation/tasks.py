@@ -1,6 +1,8 @@
 from celery import Celery
 
 from meridian_simulation.config import Settings
+from meridian_simulation.database import initialize_database
+from meridian_simulation.job_store import complete_job
 
 settings = Settings.from_env()
 
@@ -12,14 +14,7 @@ celery_app = Celery(
 
 
 @celery_app.task(name="simulation.run")
-def run_simulation(payload: dict) -> dict:
-    return {
-        "status": "complete",
-        "engine": payload["engine"],
-        "scenario_id": payload["scenario_id"],
-        "summary": {
-            "total_cost": 0,
-            "emissions_tonnes_co2e": 0,
-            "renewable_share": 0,
-        },
-    }
+def run_simulation(job_id: str) -> dict:
+    task_settings = Settings.from_env()
+    initialize_database(task_settings)
+    return complete_job(job_id, task_settings)

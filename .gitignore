@@ -10,6 +10,7 @@ build/
 
 vendor/
 storage/*.key
+apps/simulation/storage/
 
 __pycache__/
 *.py[cod]
