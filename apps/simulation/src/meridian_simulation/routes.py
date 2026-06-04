@@ -4,6 +4,7 @@ from flask import Blueprint, current_app, jsonify, request
 from pydantic import BaseModel, Field, ValidationError
 
 from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
+from meridian_simulation.results import LATEST_RESULTS, RECENT_SIMULATION_JOBS
 
 api = Blueprint("api", __name__)
 
@@ -41,6 +42,21 @@ def data_connectors():
     return {"data": DATA_CONNECTORS}
 
 
+@api.get("/simulations/recent")
+def recent_simulations():
+    return {"data": RECENT_SIMULATION_JOBS}
+
+
+@api.get("/projects/<project_id>/scenarios/<scenario_id>/results/latest")
+def latest_result(project_id: str, scenario_id: str):
+    result = LATEST_RESULTS.get((project_id, scenario_id))
+
+    if result is None:
+        return jsonify({"errors": [{"msg": "No completed result for scenario"}]}), 404
+
+    return {"data": result}
+
+
 @api.post("/simulations")
 def create_simulation():
     try:
@@ -57,10 +73,14 @@ def create_simulation():
     return jsonify({
         "id": job_id,
         "status": "queued",
+        "progress": 0,
         "project_id": payload.project_id,
         "scenario_id": payload.scenario_id,
         "engine": payload.engine,
         "objective": payload.objective,
+        "links": {
+            "latest_result": f"/api/projects/{payload.project_id}/scenarios/{payload.scenario_id}/results/latest",
+        },
     }), 202
 
 

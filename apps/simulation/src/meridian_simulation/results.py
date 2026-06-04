@@ -1,0 +1,65 @@
+RECENT_SIMULATION_JOBS = [
+    {
+        "id": "sim_1042",
+        "project_id": "prj_nw_grid",
+        "scenario_id": "scn_nw_storage",
+        "engine": "pypsa",
+        "model": "PyPSA capacity expansion",
+        "status": "running",
+        "progress": 64,
+        "submitted_at": "2026-06-04T08:10:00Z",
+    },
+    {
+        "id": "sim_1041",
+        "project_id": "prj_solar_storage",
+        "scenario_id": "scn_az_hybrid",
+        "engine": "pysam",
+        "model": "NREL PySAM hybrid plant",
+        "status": "complete",
+        "progress": 100,
+        "submitted_at": "2026-06-04T07:42:00Z",
+    },
+    {
+        "id": "sim_1040",
+        "project_id": "prj_heat_network",
+        "scenario_id": "scn_heat_peak",
+        "engine": "pandapower",
+        "model": "pandapower load flow",
+        "status": "queued",
+        "progress": 0,
+        "submitted_at": "2026-06-04T07:31:00Z",
+    },
+]
+
+LATEST_RESULTS = {
+    ("prj_nw_grid", "scn_nw_base"): {
+        "scenario_id": "scn_nw_base",
+        "status": "complete",
+        "engine": "pypsa",
+        "total_cost_million": 418.6,
+        "renewable_share_percent": 70.4,
+        "emissions_tonnes_co2e": 284000,
+        "curtailment_mwh": 42600,
+        "reliability_margin_percent": 13.2,
+        "recommendations": [
+            "Increase short-duration storage before adding new peaking generation.",
+            "Test a tighter grid import constraint against winter peak demand.",
+            "Review curtailment around high-wind overnight periods.",
+        ],
+    },
+    ("prj_solar_storage", "scn_az_hybrid"): {
+        "scenario_id": "scn_az_hybrid",
+        "status": "complete",
+        "engine": "pysam",
+        "total_cost_million": 236.1,
+        "renewable_share_percent": 84.8,
+        "emissions_tonnes_co2e": 122000,
+        "curtailment_mwh": 18300,
+        "reliability_margin_percent": 18.6,
+        "recommendations": [
+            "Battery utilisation is highest with a 17:00 to 21:00 discharge window.",
+            "The inverter loading ratio is reasonable for the modeled resource profile.",
+            "Run a tariff sensitivity before finalising storage sizing.",
+        ],
+    },
+}
