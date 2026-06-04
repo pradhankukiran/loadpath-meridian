@@ -46,11 +46,20 @@
 - Add scenario data import workflow in React
 - Render imported weather/input summaries
 
+## Phase 6: Frontend Routing and Product Pages
+
+- Add React Router
+- Add persistent application shell with active navigation
+- Move workspace dashboard into a route-level page
+- Add projects, simulations, data sources, and reports pages
+- Split frontend code into pages and shared formatting helpers
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
+- Modal LLM assistant
 - External simulation engine package integrations
 - Data source integrations
 - Results dashboards
