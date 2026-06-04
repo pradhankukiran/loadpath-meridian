@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import {
+  analyseScenario,
   createScenario,
   getLatestResult,
   getProject,
@@ -9,6 +10,7 @@ import {
   getScenarioDatasets,
   importScenarioDataset,
   submitSimulation,
+  type AssistantAnalysis,
   type DataConnector,
   type Project,
   type ScenarioDataset,
@@ -37,6 +39,13 @@ const defaultDataImportForm = {
   forecast_days: '7',
 }
 
+const assistantPrompts = [
+  'Explain this result for a project sponsor.',
+  'What assumptions look weak?',
+  'How can we reduce curtailment?',
+  'Summarise the operational risks.',
+]
+
 function maxOf(values: number[]) {
   return Math.max(...values, 1)
 }
@@ -57,6 +66,10 @@ export function WorkspacePage() {
   const [dataImportForm, setDataImportForm] = useState(defaultDataImportForm)
   const [dataImportStatus, setDataImportStatus] = useState<string>('')
   const [isImportingData, setIsImportingData] = useState(false)
+  const [assistantMessage, setAssistantMessage] = useState(assistantPrompts[0])
+  const [assistantResponse, setAssistantResponse] =
+    useState<AssistantAnalysis | null>(null)
+  const [isAssistantLoading, setIsAssistantLoading] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -293,6 +306,40 @@ export function WorkspacePage() {
       setDataImportStatus('Could not import weather inputs')
     } finally {
       setIsImportingData(false)
+    }
+  }
+
+  async function handleAssistantSubmit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
+
+    if (!selectedProjectId || !selectedScenario) {
+      return
+    }
+
+    setIsAssistantLoading(true)
+
+    try {
+      const response = await analyseScenario({
+        project_id: selectedProjectId,
+        scenario_id: selectedScenario.id,
+        message: assistantMessage,
+        context_scope: 'latest_result',
+      })
+      setAssistantResponse(response)
+    } catch {
+      setAssistantResponse({
+        source: 'local',
+        analysis: 'The assistant could not analyse this scenario right now.',
+        context: {
+          project_id: selectedProjectId,
+          scenario_id: selectedScenario.id,
+          message: assistantMessage,
+          latest_result: null,
+          latest_dataset_summary: null,
+        },
+      })
+    } finally {
+      setIsAssistantLoading(false)
     }
   }
 
@@ -920,6 +967,55 @@ export function WorkspacePage() {
                     </>
                   ) : (
                     <p>No completed result is available for this scenario yet.</p>
+                  )}
+                </aside>
+
+                <aside className="assistant-panel" aria-labelledby="assistant-panel">
+                  <h2 id="assistant-panel">Assistant</h2>
+                  <form onSubmit={handleAssistantSubmit}>
+                    <label>
+                      <span>Question</span>
+                      <textarea
+                        value={assistantMessage}
+                        onChange={(event) =>
+                          setAssistantMessage(event.target.value)
+                        }
+                        rows={4}
+                      />
+                    </label>
+                    <div className="prompt-list" aria-label="Suggested prompts">
+                      {assistantPrompts.map((prompt) => (
+                        <button
+                          className="secondary-button"
+                          type="button"
+                          key={prompt}
+                          onClick={() => setAssistantMessage(prompt)}
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="form-actions">
+                      <button type="submit" disabled={isAssistantLoading}>
+                        {isAssistantLoading ? 'Analysing' : 'Ask assistant'}
+                      </button>
+                      {assistantResponse ? (
+                        <span className={`tag tag-${assistantResponse.source}`}>
+                          {assistantResponse.source}
+                        </span>
+                      ) : null}
+                    </div>
+                  </form>
+                  {assistantResponse ? (
+                    <div className="assistant-response">
+                      <h3>Analysis</h3>
+                      <p>{assistantResponse.analysis}</p>
+                    </div>
+                  ) : (
+                    <p className="small-copy">
+                      Ask for an explanation, assumption review, or scenario
+                      improvement ideas.
+                    </p>
                   )}
                 </aside>
               </div>

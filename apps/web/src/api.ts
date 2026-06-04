@@ -98,6 +98,25 @@ export type ImportDatasetPayload = {
   forecast_days: number
 }
 
+export type AssistantAnalysis = {
+  source: 'modal' | 'local'
+  analysis: string
+  context: {
+    project_id: string
+    scenario_id: string
+    message: string
+    latest_result: SimulationResult | null
+    latest_dataset_summary: DatasetSummary | null
+  }
+}
+
+export type AssistantAnalysisPayload = {
+  project_id: string
+  scenario_id: string
+  message: string
+  context_scope?: string
+}
+
 export type CreateProjectPayload = {
   name: string
   owner: string
@@ -408,6 +427,17 @@ export async function importScenarioDataset(
     `${simulationApiUrl}/projects/${projectId}/scenarios/${scenarioId}/datasets/import`,
     payload,
   )
+
+  return response.data
+}
+
+export async function analyseScenario(
+  payload: AssistantAnalysisPayload,
+): Promise<AssistantAnalysis> {
+  const response = await postJson<
+    ApiEnvelope<AssistantAnalysis>,
+    AssistantAnalysisPayload
+  >(`${simulationApiUrl}/assistant/analyse`, payload)
 
   return response.data
 }
