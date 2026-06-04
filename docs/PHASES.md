@@ -63,6 +63,14 @@
 - Add workspace assistant panel with suggested prompts
 - Render assistant source and response in React
 
+## Phase 8: Scenario Comparison and Reports
+
+- Add project scenario comparison endpoint
+- Compare completed simulation results by cost, emissions, renewable share, curtailment, and reliability
+- Add decision indicators for best value, lowest emissions, highest renewable share, and highest risk
+- Replace reports placeholder with a selectable comparison report page
+- Add report-ready summary cards and comparison table
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
