@@ -71,6 +71,16 @@
 - Replace reports placeholder with a selectable comparison report page
 - Add report-ready summary cards and comparison table
 
+## Phase 9: Deployment and Operations
+
+- Add backend operations status endpoints for platform and simulation services
+- Add explicit frontend-origin CORS configuration for the simulation API
+- Add Railway config-as-code for platform and simulation Docker services
+- Add Vercel config for the React single-page app
+- Add production Docker health checks and dynamic `PORT` support
+- Add deployment environment templates for frontend, platform, and simulation services
+- Document Railway/Vercel deployment, worker start command, health probes, and verification flow
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
@@ -79,6 +89,6 @@ demo or MVP:
 - External simulation engine package integrations
 - Data source integrations
 - Results dashboards
-- AI assistant backed by the Modal LLM endpoint
 - Reports and exports
-- Deployment configuration
+- Exportable report packages
+- Production telemetry and usage metering

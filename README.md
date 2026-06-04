@@ -11,5 +11,6 @@ The product is structured as a production-shaped monorepo:
 - `infra`: Docker and deployment configuration
 - `docs`: product and architecture notes
 
-Phase 1 establishes the full application foundation: repository structure,
-framework scaffolds, service boundaries, Docker orchestration, and smoke checks.
+The current build includes project and scenario workflows, simulation result
+generation, data connectors, scenario comparison reports, Modal-backed assistant
+integration, and Railway/Vercel deployment configuration.
