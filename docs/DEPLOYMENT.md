@@ -7,7 +7,7 @@
 - Simulation API: Railway Docker service from `apps/simulation/Dockerfile`
 - Worker: Railway Docker service using the simulation image and Celery command
 - Redis: Railway Redis
-- Database: Railway MariaDB for platform data
+- Database: Railway MariaDB for platform and simulation data
 
 ## Local Orchestration
 
@@ -68,6 +68,8 @@ Required environment variables:
 - `APP_ENV`: `production`
 - `FRONTEND_URL`: public Vercel frontend URL
 - `REDIS_URL`: Railway Redis URL
+- `SIMULATION_DATABASE_URL`: SQLAlchemy database URL for simulation jobs and results
+- `SIMULATION_SYNC_JOBS`: `false` for Celery-backed async execution
 - `MODAL_LLM_ENDPOINT`: Modal-hosted LLM inference endpoint
 - `NREL_API_KEY`: optional NREL key for PVWatts
 - `EIA_API_KEY`: optional EIA key
@@ -95,7 +97,8 @@ celery -A meridian_simulation.tasks.celery_app worker --loglevel=INFO
 ```
 
 Use the same `REDIS_URL`, `MODAL_LLM_ENDPOINT`, `NREL_API_KEY`, and `EIA_API_KEY`
-values as the simulation API.
+values as the simulation API. Use the same `SIMULATION_DATABASE_URL` and keep
+`SIMULATION_SYNC_JOBS=false` so the worker owns execution.
 
 ## Health And Operations
 
@@ -107,7 +110,7 @@ Public health probes:
 Operational checks:
 
 - `GET /api/operations/status` on platform reports database, queue, cache, environment, and frontend URL.
-- `GET /api/operations/status` on simulation reports Redis, Modal, NREL, EIA, environment, and allowed frontend origins.
+- `GET /api/operations/status` on simulation reports database, Redis, queue mode, Modal, NREL, EIA, environment, and allowed frontend origins.
 
 ## Deployment Verification
 
@@ -118,13 +121,16 @@ After deployment:
 3. Open `/reports` and confirm scenario comparison loads from the simulation API.
 4. Open both `/api/health` endpoints.
 5. Open both `/api/operations/status` endpoints.
-6. Submit a scenario run and confirm latest results render.
-7. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
-8. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
+6. Submit a scenario run and confirm it first appears as queued or running.
+7. Confirm the worker completes the job and latest results render.
+8. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
+9. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
 
 ## Environment Templates
 
 - `MODAL_LLM_ENDPOINT`: Modal-hosted LLM inference endpoint
+- `SIMULATION_DATABASE_URL`: simulation job/result database URL
+- `SIMULATION_SYNC_JOBS`: `false` for Docker/Railway async execution, `true` for direct local runs
 - `NREL_API_KEY`: NREL Developer Network key
 - `EIA_API_KEY`: EIA Open Data key
 - `apps/web/.env.example`: local frontend API values

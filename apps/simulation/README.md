@@ -13,6 +13,11 @@ flask --app meridian_simulation.app:create_app run --port 5001
 pytest
 ```
 
+Direct local runs use `sqlite:///storage/simulation.db` and
+`SIMULATION_SYNC_JOBS=true` by default. Docker Compose sets
+`SIMULATION_DATABASE_URL` to MariaDB and `SIMULATION_SYNC_JOBS=false`, so the API
+persists queued jobs and the Celery worker completes them asynchronously.
+
 Install real engine libraries locally:
 
 ```bash

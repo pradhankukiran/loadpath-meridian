@@ -30,9 +30,9 @@ The simulation API owns technical modelling workflows:
 - simulation engine registry
 - real engine adapter execution for PyPSA, pandapower, PySAM, pvlib, and OSeMOSYS tooling
 - data connector registry
-- simulation job creation
-- worker orchestration
-- result summaries
+- persistent simulation job creation
+- Redis-backed Celery worker orchestration
+- stored result summaries
 - Modal LLM context assembly
 
 ## Runtime Flow
@@ -41,8 +41,9 @@ The simulation API owns technical modelling workflows:
 React web
   -> Laravel platform API
   -> Flask simulation API
-  -> Celery worker
   -> Redis queue
+  -> Celery worker
+  -> simulation jobs/results database
   -> energy engine adapters and external data APIs
 ```
 
@@ -53,3 +54,8 @@ inside controlled service boundaries.
 Simulation results carry a normalized result shape for the web app plus
 `engine_adapter` metadata that records which modelling package was used, whether
 the package executed, and whether a solver or resource file is still needed.
+
+The simulation API stores submitted jobs, status transitions, payloads, and
+latest results in a SQL database. Direct local runs use SQLite by default;
+Docker and Railway use MariaDB through `SIMULATION_DATABASE_URL`. In Docker,
+the API enqueues jobs and the worker executes them asynchronously through Redis.

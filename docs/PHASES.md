@@ -92,6 +92,16 @@
 - Add optional `energy` dependency extra and Docker build arg for real engine packages
 - Surface engine execution status in the workspace result panel
 
+## Phase 11: Persistent Simulation Runtime
+
+- Add SQL-backed simulation job and result storage
+- Seed initial simulation jobs and completed results into the simulation database
+- Store submitted payloads, assumptions, status transitions, latest results, and worker errors
+- Move simulation execution behind Redis-backed Celery tasks
+- Keep direct local runs synchronous by default for fast development
+- Configure Docker Compose so Flask and Celery worker share MariaDB and Redis
+- Add operations status reporting for simulation database and queue mode
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
