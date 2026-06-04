@@ -7,6 +7,7 @@ from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
 from meridian_simulation.job_store import enqueue_job, list_recent_jobs
+from meridian_simulation.operations import service_status
 from meridian_simulation.results import LATEST_RESULTS
 
 api = Blueprint("api", __name__)
@@ -44,6 +45,11 @@ def health():
         "service": "loadpath-meridian-simulation",
         "status": "ok",
     }
+
+
+@api.get("/operations/status")
+def operations_status():
+    return {"data": service_status(current_app.config["MERIDIAN_SETTINGS"])}
 
 
 @api.get("/engines")

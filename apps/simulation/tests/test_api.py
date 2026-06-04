@@ -1,4 +1,5 @@
 from meridian_simulation.app import create_app
+from meridian_simulation.config import Settings
 
 
 def test_health_endpoint():
@@ -11,6 +12,50 @@ def test_health_endpoint():
         "service": "loadpath-meridian-simulation",
         "status": "ok",
     }
+
+
+def test_operations_status_endpoint_reports_runtime_configuration():
+    app = create_app(
+        Settings(
+            redis_url="redis://localhost:1/0",
+            modal_llm_endpoint="https://modal.example/analyse",
+            nrel_api_key="nrel-test",
+            eia_api_key=None,
+            app_env="production",
+            frontend_origins=("https://loadpath.example",),
+        )
+    )
+    client = app.test_client()
+
+    response = client.get("/api/operations/status")
+
+    assert response.status_code == 200
+    assert response.json["data"]["service"] == "loadpath-meridian-simulation"
+    assert response.json["data"]["status"] == "degraded"
+    assert response.json["data"]["environment"] == "production"
+    assert response.json["data"]["checks"]["redis"] == "unavailable"
+    assert response.json["data"]["checks"]["modal_llm"] == "configured"
+    assert response.json["data"]["frontend_origins"] == ["https://loadpath.example"]
+
+
+def test_cors_headers_allow_configured_frontend_origin():
+    app = create_app(
+        Settings(
+            redis_url="redis://localhost:6379/0",
+            modal_llm_endpoint=None,
+            nrel_api_key=None,
+            eia_api_key=None,
+            frontend_origins=("https://loadpath.example",),
+        )
+    )
+    client = app.test_client()
+
+    response = client.get(
+        "/api/health",
+        headers={"Origin": "https://loadpath.example"},
+    )
+
+    assert response.headers["Access-Control-Allow-Origin"] == "https://loadpath.example"
 
 
 def test_engines_endpoint_includes_pypsa():

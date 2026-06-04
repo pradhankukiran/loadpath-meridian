@@ -3,6 +3,7 @@
 use App\Models\Project;
 use App\Models\Scenario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -10,6 +11,30 @@ Route::get('/health', function () {
     return [
         'service' => 'loadpath-meridian-platform',
         'status' => 'ok',
+    ];
+});
+
+Route::get('/operations/status', function () {
+    $databaseStatus = 'ok';
+
+    try {
+        DB::connection()->getPdo();
+    } catch (Throwable) {
+        $databaseStatus = 'unavailable';
+    }
+
+    return [
+        'data' => [
+            'service' => 'loadpath-meridian-platform',
+            'status' => $databaseStatus === 'ok' ? 'ok' : 'degraded',
+            'environment' => app()->environment(),
+            'checks' => [
+                'database' => $databaseStatus,
+                'queue' => config('queue.default'),
+                'cache' => config('cache.default'),
+            ],
+            'frontend_url' => config('cors.allowed_origins.0'),
+        ],
     ];
 });
 

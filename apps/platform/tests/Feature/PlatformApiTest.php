@@ -20,6 +20,17 @@ class PlatformApiTest extends TestCase
             ]);
     }
 
+    public function test_operations_status_endpoint_reports_runtime_configuration(): void
+    {
+        $response = $this->getJson('/api/operations/status');
+
+        $response->assertOk()
+            ->assertJsonPath('data.service', 'loadpath-meridian-platform')
+            ->assertJsonPath('data.status', 'ok')
+            ->assertJsonPath('data.checks.database', 'ok')
+            ->assertJsonPath('data.frontend_url', 'http://localhost:5173');
+    }
+
     public function test_projects_endpoint_returns_project_summaries(): void
     {
         $this->seed();
