@@ -10,12 +10,22 @@
 - Add Docker Compose for local orchestration
 - Add smoke-check documentation
 
+## Phase 2: Project Workspace
+
+- Add database-backed platform projects
+- Add database-backed scenario records
+- Add project and scenario API endpoints
+- Add simulation queue API
+- Add latest result summary API
+- Connect the React dashboard to Laravel and Flask services
+- Verify desktop and mobile rendering with screenshots
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
-- Project and scenario management
+- Project and scenario creation forms
 - Simulation engine integrations
 - Data source integrations
 - Results dashboards
