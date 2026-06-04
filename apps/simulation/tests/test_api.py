@@ -103,6 +103,12 @@ def test_simulation_submission_returns_queued_job():
     result_response = client.get("/api/projects/prj_nw_grid/scenarios/scn_base/results/latest")
     assert result_response.status_code == 200
     assert result_response.json["data"]["status"] == "complete"
+    assert result_response.json["data"]["engine_adapter"]["engine"] == "pypsa"
+    assert result_response.json["data"]["engine_adapter"]["status"] in {
+        "executed",
+        "model_built",
+        "unavailable",
+    }
     assert len(result_response.json["data"]["dispatch_profile"]) == 24
     assert result_response.json["data"]["generation_mix"][0]["label"] == "Solar"
     assert result_response.json["data"]["cost_breakdown"][0]["label"] == "Generation"

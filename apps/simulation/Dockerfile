@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
 WORKDIR /app
+ARG INSTALL_ENERGY_EXTRAS=false
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -12,6 +13,7 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 
 RUN pip install --no-cache-dir .
+RUN if [ "$INSTALL_ENERGY_EXTRAS" = "true" ]; then pip install --no-cache-dir ".[energy]"; fi
 
 EXPOSE 5001
 

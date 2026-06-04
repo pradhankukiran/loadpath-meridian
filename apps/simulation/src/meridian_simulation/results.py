@@ -36,6 +36,11 @@ LATEST_RESULTS = {
         "scenario_id": "scn_nw_base",
         "status": "complete",
         "engine": "pypsa",
+        "engine_adapter": {
+            "engine": "pypsa",
+            "status": "unavailable",
+            "message": "Install the energy extra to run PyPSA models.",
+        },
         "total_cost_million": 418.6,
         "renewable_share_percent": 70.4,
         "emissions_tonnes_co2e": 284000,
@@ -74,6 +79,11 @@ LATEST_RESULTS = {
         "scenario_id": "scn_az_hybrid",
         "status": "complete",
         "engine": "pysam",
+        "engine_adapter": {
+            "engine": "pysam",
+            "status": "unavailable",
+            "message": "Install the energy extra to run NREL PySAM models.",
+        },
         "total_cost_million": 236.1,
         "renewable_share_percent": 84.8,
         "emissions_tonnes_co2e": 122000,

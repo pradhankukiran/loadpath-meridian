@@ -22,10 +22,13 @@ dev = [
     "pytest>=8.2",
 ]
 energy = [
+    "highspy>=1.7",
     "linopy>=0.5",
     "nrel-pysam>=6.0",
     "oemof.solph>=0.5",
+    "otoole>=1.0",
     "pandapower>=2.14",
+    "pandas>=2.2",
     "pvlib>=0.10",
     "pyomo>=6.8",
     "pypsa>=0.30",

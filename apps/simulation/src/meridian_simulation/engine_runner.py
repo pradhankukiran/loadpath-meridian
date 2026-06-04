@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from math import cos, pi, sin
 
+from meridian_simulation.engine_adapters import run_engine_adapter
+
 
 def run_energy_system_simulation(payload: dict) -> dict:
     annual_demand_mwh = float(payload.get("annual_demand_mwh", 1_840_000))
@@ -78,6 +80,12 @@ def run_energy_system_simulation(payload: dict) -> dict:
             storage_duration_hours=float(assumptions.get("storage_duration_hours", 4)),
         ),
     }
+
+    adapter_outcome = run_engine_adapter(payload, result)
+    if adapter_outcome.updates:
+        result.update(adapter_outcome.updates)
+
+    result["engine_adapter"] = adapter_outcome.metadata
 
     return result
 
