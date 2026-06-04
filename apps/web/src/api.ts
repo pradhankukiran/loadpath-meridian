@@ -47,6 +47,34 @@ export type SimulationResult = {
   recommendations: string[]
 }
 
+export type CreateProjectPayload = {
+  name: string
+  owner: string
+  region: string
+  grid_region?: string
+  description?: string
+  status?: string
+}
+
+export type CreateScenarioPayload = {
+  name: string
+  objective: string
+  engine: string
+  horizon: string
+  annual_demand_mwh: number
+  peak_load_mw: number
+  renewable_share_target: number
+  assumptions: Record<string, number | string | boolean>
+}
+
+export type SubmitSimulationPayload = {
+  project_id: string
+  scenario_id: string
+  engine: string
+  objective: string
+  assumptions: Record<string, number | string | boolean>
+}
+
 type ApiEnvelope<T> = {
   data: T
 }
@@ -170,10 +198,40 @@ async function getJson<T>(url: string, fallback: T): Promise<T> {
   }
 }
 
+async function postJson<TResponse, TPayload>(
+  url: string,
+  payload: TPayload,
+): Promise<TResponse> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`)
+  }
+
+  return (await response.json()) as TResponse
+}
+
 export async function getProjects(): Promise<Project[]> {
   const response = await getJson<ApiEnvelope<Project[]>>(
     `${platformApiUrl}/projects`,
     { data: fallbackProjects },
+  )
+
+  return response.data
+}
+
+export async function createProject(
+  payload: CreateProjectPayload,
+): Promise<Project> {
+  const response = await postJson<ApiEnvelope<Project>, CreateProjectPayload>(
+    `${platformApiUrl}/projects`,
+    payload,
   )
 
   return response.data
@@ -197,6 +255,18 @@ export async function getProject(projectId: string): Promise<Project> {
   return response.data
 }
 
+export async function createScenario(
+  projectId: string,
+  payload: CreateScenarioPayload,
+): Promise<Scenario> {
+  const response = await postJson<ApiEnvelope<Scenario>, CreateScenarioPayload>(
+    `${platformApiUrl}/projects/${projectId}/scenarios`,
+    payload,
+  )
+
+  return response.data
+}
+
 export async function getRecentSimulationJobs(): Promise<SimulationJob[]> {
   const response = await getJson<ApiEnvelope<SimulationJob[]>>(
     `${simulationApiUrl}/simulations/recent`,
@@ -204,6 +274,15 @@ export async function getRecentSimulationJobs(): Promise<SimulationJob[]> {
   )
 
   return response.data
+}
+
+export async function submitSimulation(
+  payload: SubmitSimulationPayload,
+): Promise<SimulationJob> {
+  return await postJson<SimulationJob, SubmitSimulationPayload>(
+    `${simulationApiUrl}/simulations`,
+    payload,
+  )
 }
 
 export async function getLatestResult(

@@ -130,6 +130,11 @@ button:hover {
   background: #005a30;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .link-button {
   border: 0;
   border-bottom: 2px solid transparent;
@@ -330,6 +335,78 @@ thead th {
   align-items: start;
 }
 
+.builder-panel {
+  margin-bottom: 36px;
+  padding: 22px 0;
+  border-top: 1px solid #b1b4b6;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.builder-panel h2 {
+  margin-bottom: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 22px;
+}
+
+.form-grid label {
+  display: block;
+}
+
+.form-grid span {
+  display: block;
+  color: #0b0c0c;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  width: 100%;
+  border: 2px solid #0b0c0c;
+  border-radius: 0;
+  color: #0b0c0c;
+  background: #ffffff;
+  font: inherit;
+  font-size: 18px;
+  padding: 8px;
+}
+
+.form-grid textarea {
+  resize: vertical;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+  outline: 3px solid #ffdd00;
+  outline-offset: 0;
+  box-shadow: inset 0 0 0 2px #0b0c0c;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.status-message {
+  color: #0b0c0c;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 .result-panel {
   background: #f3f2f1;
   border-left: 4px solid #0b0c0c;
@@ -416,6 +493,10 @@ thead th {
 
   .result-panel {
     margin-top: 32px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 }
 
