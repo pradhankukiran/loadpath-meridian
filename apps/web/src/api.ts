@@ -44,6 +44,17 @@ export type SimulationResult = {
   emissions_tonnes_co2e: number
   curtailment_mwh: number
   reliability_margin_percent: number
+  generation_mix: Array<{ label: string; mwh: number }>
+  cost_breakdown: Array<{ label: string; million: number }>
+  dispatch_profile: Array<{
+    hour: number
+    demand_mw: number
+    solar_mw: number
+    wind_mw: number
+    storage_mw: number
+    grid_mw: number
+    curtailment_mw: number
+  }>
   recommendations: string[]
 }
 
@@ -72,6 +83,9 @@ export type SubmitSimulationPayload = {
   scenario_id: string
   engine: string
   objective: string
+  annual_demand_mwh: number
+  peak_load_mw: number
+  renewable_share_target: number
   assumptions: Record<string, number | string | boolean>
 }
 
@@ -177,6 +191,26 @@ const fallbackResult: SimulationResult = {
   emissions_tonnes_co2e: 284000,
   curtailment_mwh: 42600,
   reliability_margin_percent: 13.2,
+  generation_mix: [
+    { label: 'Solar', mwh: 514000 },
+    { label: 'Wind', mwh: 742000 },
+    { label: 'Storage discharge', mwh: 126000 },
+    { label: 'Grid imports', mwh: 458000 },
+  ],
+  cost_breakdown: [
+    { label: 'Generation', million: 261.4 },
+    { label: 'Network capacity', million: 79.5 },
+    { label: 'Carbon', million: 77.1 },
+  ],
+  dispatch_profile: Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    demand_mw: 220 + hour * 4,
+    solar_mw: Math.max(0, 180 - Math.abs(12 - hour) * 28),
+    wind_mw: 140,
+    storage_mw: hour >= 17 && hour <= 21 ? 60 : 0,
+    grid_mw: 90,
+    curtailment_mw: hour >= 10 && hour <= 14 ? 12 : 0,
+  })),
   recommendations: [
     'Increase short-duration storage before adding new peaking generation.',
     'Test a tighter grid import constraint against winter peak demand.',

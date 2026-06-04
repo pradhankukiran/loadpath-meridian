@@ -460,6 +460,61 @@ thead th {
   font-weight: 700;
 }
 
+.result-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.result-bar-row {
+  display: grid;
+  gap: 6px;
+}
+
+.result-bar-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #0b0c0c;
+  font-size: 15px;
+}
+
+.result-bar-label span {
+  font-weight: 700;
+}
+
+.result-bar-label strong {
+  white-space: nowrap;
+}
+
+.result-bar-track {
+  height: 12px;
+  background: #ffffff;
+  border: 1px solid #b1b4b6;
+}
+
+.result-bar-fill {
+  height: 100%;
+  background: #1d70b8;
+}
+
+.result-bar-fill-cost {
+  background: #00703c;
+}
+
+.dispatch-table-wrap {
+  overflow-x: auto;
+}
+
+.dispatch-table {
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.dispatch-table th,
+.dispatch-table td {
+  padding: 8px 10px 8px 0;
+}
+
 @media (max-width: 860px) {
   .container {
     width: min(100% - 32px, 1360px);

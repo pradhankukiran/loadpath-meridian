@@ -33,9 +33,14 @@ function formatPercent(value: number) {
   return `${value.toFixed(1)}%`
 }
 
+function maxOf(values: number[]) {
+  return Math.max(...values, 1)
+}
+
 function App() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('')
   const [projectDetail, setProjectDetail] = useState<Project | null>(null)
   const [jobs, setJobs] = useState<SimulationJob[]>([])
   const [latestResult, setLatestResult] = useState<SimulationResult | null>(null)
@@ -94,7 +99,23 @@ function App() {
     }
   }, [selectedProjectId])
 
-  const selectedScenario = projectDetail?.scenarios?.[0] ?? null
+  const scenarios = projectDetail?.scenarios ?? []
+  const selectedScenario =
+    scenarios.find((scenario) => scenario.id === selectedScenarioId) ??
+    scenarios[0] ??
+    null
+  const selectedScenarioResultId = selectedScenario?.id ?? ''
+
+  useEffect(() => {
+    if (!scenarios.length) {
+      setSelectedScenarioId('')
+      return
+    }
+
+    if (!scenarios.some((scenario) => scenario.id === selectedScenarioId)) {
+      setSelectedScenarioId(scenarios[0].id)
+    }
+  }, [scenarios, selectedScenarioId])
 
   useEffect(() => {
     if (!selectedProjectId || !selectedScenario) {
@@ -103,10 +124,11 @@ function App() {
     }
 
     let isMounted = true
-    const scenarioId = selectedScenario.id
-
     async function loadLatestResult() {
-      const result = await getLatestResult(selectedProjectId, scenarioId)
+      const result = await getLatestResult(
+        selectedProjectId,
+        selectedScenarioResultId,
+      )
 
       if (!isMounted) {
         return
@@ -120,7 +142,7 @@ function App() {
     return () => {
       isMounted = false
     }
-  }, [selectedProjectId, selectedScenario])
+  }, [selectedProjectId, selectedScenario, selectedScenarioResultId])
 
   const activeProjectCount = projects.filter(
     (project) => project.status === 'active',
@@ -185,11 +207,17 @@ function App() {
         scenario_id: scenario.id,
         engine: scenario.engine,
         objective: scenario.objective,
+        annual_demand_mwh: scenario.annual_demand_mwh,
+        peak_load_mw: scenario.peak_load_mw,
+        renewable_share_target: scenario.renewable_share_target,
         assumptions: scenario.assumptions,
       })
 
+      setSelectedScenarioId(scenario.id)
       await refreshWorkspace(selectedProjectId)
-      setSubmissionStatus(`Queued ${job.id}`)
+      const generatedResult = await getLatestResult(selectedProjectId, scenario.id)
+      setLatestResult(generatedResult)
+      setSubmissionStatus(`Completed ${job.id}`)
     } catch {
       setSubmissionStatus('Could not create scenario or queue simulation')
     } finally {
@@ -277,7 +305,10 @@ function App() {
                         <button
                           className="link-button"
                           type="button"
-                          onClick={() => setSelectedProjectId(project.id)}
+                          onClick={() => {
+                            setSelectedProjectId(project.id)
+                            setSelectedScenarioId('')
+                          }}
                         >
                           {project.name}
                         </button>
@@ -531,7 +562,15 @@ function App() {
                       <tbody>
                         {(projectDetail.scenarios ?? []).map((scenario) => (
                           <tr key={scenario.id}>
-                            <th scope="row">{scenario.name}</th>
+                            <th scope="row">
+                              <button
+                                className="link-button"
+                                type="button"
+                                onClick={() => setSelectedScenarioId(scenario.id)}
+                              >
+                                {scenario.name}
+                              </button>
+                            </th>
                             <td>{scenario.engine}</td>
                             <td>{scenario.horizon}</td>
                             <td>{formatNumber(scenario.peak_load_mw)} MW</td>
@@ -583,6 +622,83 @@ function App() {
                           </dd>
                         </div>
                       </dl>
+                      <h3>Generation mix</h3>
+                      <div className="result-bars">
+                        {latestResult.generation_mix.map((item) => {
+                          const maxGeneration = maxOf(
+                            latestResult.generation_mix.map((mix) => mix.mwh),
+                          )
+
+                          return (
+                            <div className="result-bar-row" key={item.label}>
+                              <div className="result-bar-label">
+                                <span>{item.label}</span>
+                                <strong>{formatNumber(Math.round(item.mwh))} MWh</strong>
+                              </div>
+                              <div className="result-bar-track">
+                                <div
+                                  className="result-bar-fill"
+                                  style={{
+                                    width: `${Math.max(5, (item.mwh / maxGeneration) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <h3>Cost breakdown</h3>
+                      <div className="result-bars">
+                        {latestResult.cost_breakdown.map((item) => {
+                          const maxCost = maxOf(
+                            latestResult.cost_breakdown.map((cost) => cost.million),
+                          )
+
+                          return (
+                            <div className="result-bar-row" key={item.label}>
+                              <div className="result-bar-label">
+                                <span>{item.label}</span>
+                                <strong>£{item.million}m</strong>
+                              </div>
+                              <div className="result-bar-track">
+                                <div
+                                  className="result-bar-fill result-bar-fill-cost"
+                                  style={{
+                                    width: `${Math.max(5, (item.million / maxCost) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <h3>Dispatch sample</h3>
+                      <div className="dispatch-table-wrap">
+                        <table className="dispatch-table">
+                          <thead>
+                            <tr>
+                              <th scope="col">Hour</th>
+                              <th scope="col">Demand</th>
+                              <th scope="col">Solar</th>
+                              <th scope="col">Wind</th>
+                              <th scope="col">Grid</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {latestResult.dispatch_profile
+                              .filter((row) => row.hour % 4 === 0)
+                              .map((row) => (
+                                <tr key={row.hour}>
+                                  <th scope="row">{row.hour}:00</th>
+                                  <td>{Math.round(row.demand_mw)}</td>
+                                  <td>{Math.round(row.solar_mw)}</td>
+                                  <td>{Math.round(row.wind_mw)}</td>
+                                  <td>{Math.round(row.grid_mw)}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
                       <h3>Assistant-ready notes</h3>
                       <ul>
                         {latestResult.recommendations.map((recommendation) => (
