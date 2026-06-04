@@ -54,12 +54,20 @@
 - Add projects, simulations, data sources, and reports pages
 - Split frontend code into pages and shared formatting helpers
 
+## Phase 7: Modal AI Assistant
+
+- Add backend assistant context builder
+- Add Modal LLM analysis client
+- Add local fallback analysis when Modal is not configured
+- Add assistant analysis endpoint
+- Add workspace assistant panel with suggested prompts
+- Render assistant source and response in React
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
-- Modal LLM assistant
 - External simulation engine package integrations
 - Data source integrations
 - Results dashboards
