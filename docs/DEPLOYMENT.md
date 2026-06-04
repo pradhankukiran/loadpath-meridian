@@ -13,6 +13,7 @@
 
 ```bash
 cd infra
+export PLATFORM_APP_KEY="$(php ../apps/platform/artisan key:generate --show)"
 docker compose up --build
 ```
 
@@ -136,3 +137,4 @@ After deployment:
 - `apps/web/.env.example`: local frontend API values
 - `apps/platform/.env.production.example`: Railway platform API values
 - `apps/simulation/.env.example`: local and Railway simulation values
+- `PLATFORM_APP_KEY`: local Docker-only Laravel key used by `infra/docker-compose.yml`
