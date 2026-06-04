@@ -209,9 +209,10 @@ def test_latest_result_endpoint_returns_summary():
     assert "generation_mix" in response.json["data"]
 
 
-def test_latest_result_endpoint_returns_not_found_for_missing_result():
+def test_latest_result_endpoint_returns_null_for_missing_result():
     client = create_app().test_client()
 
     response = client.get("/api/projects/prj_nw_grid/scenarios/scn_nw_storage/results/latest")
 
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert response.json == {"data": None}

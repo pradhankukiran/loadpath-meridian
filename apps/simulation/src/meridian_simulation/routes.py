@@ -113,7 +113,7 @@ def latest_result(project_id: str, scenario_id: str):
     result = LATEST_RESULTS.get((project_id, scenario_id))
 
     if result is None:
-        return jsonify({"errors": [{"msg": "No completed result for scenario"}]}), 404
+        return {"data": None}
 
     return {"data": result}
 
