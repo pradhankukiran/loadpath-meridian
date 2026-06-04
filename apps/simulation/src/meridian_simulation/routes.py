@@ -13,6 +13,9 @@ class SimulationRequest(BaseModel):
     scenario_id: str = Field(min_length=1)
     engine: str = Field(min_length=1)
     objective: str = Field(min_length=1)
+    annual_demand_mwh: float = Field(default=1_840_000, ge=0)
+    peak_load_mw: float = Field(default=482, ge=0)
+    renewable_share_target: float = Field(default=70, ge=0, le=100)
     assumptions: dict = Field(default_factory=dict)
 
 

@@ -41,6 +41,29 @@ LATEST_RESULTS = {
         "emissions_tonnes_co2e": 284000,
         "curtailment_mwh": 42600,
         "reliability_margin_percent": 13.2,
+        "generation_mix": [
+            {"label": "Solar", "mwh": 514000},
+            {"label": "Wind", "mwh": 742000},
+            {"label": "Storage discharge", "mwh": 126000},
+            {"label": "Grid imports", "mwh": 458000},
+        ],
+        "cost_breakdown": [
+            {"label": "Generation", "million": 261.4},
+            {"label": "Network capacity", "million": 79.5},
+            {"label": "Carbon", "million": 77.1},
+        ],
+        "dispatch_profile": [
+            {
+                "hour": hour,
+                "demand_mw": 220 + hour * 4,
+                "solar_mw": max(0, 180 - abs(12 - hour) * 28),
+                "wind_mw": 140,
+                "storage_mw": 60 if 17 <= hour <= 21 else 0,
+                "grid_mw": 90,
+                "curtailment_mw": 12 if 10 <= hour <= 14 else 0,
+            }
+            for hour in range(24)
+        ],
         "recommendations": [
             "Increase short-duration storage before adding new peaking generation.",
             "Test a tighter grid import constraint against winter peak demand.",
@@ -56,6 +79,29 @@ LATEST_RESULTS = {
         "emissions_tonnes_co2e": 122000,
         "curtailment_mwh": 18300,
         "reliability_margin_percent": 18.6,
+        "generation_mix": [
+            {"label": "Solar", "mwh": 418000},
+            {"label": "Wind", "mwh": 0},
+            {"label": "Storage discharge", "mwh": 86000},
+            {"label": "Grid imports", "mwh": 116000},
+        ],
+        "cost_breakdown": [
+            {"label": "Generation", "million": 151.2},
+            {"label": "Network capacity", "million": 25.6},
+            {"label": "Carbon", "million": 60.3},
+        ],
+        "dispatch_profile": [
+            {
+                "hour": hour,
+                "demand_mw": 68 + hour * 1.8,
+                "solar_mw": max(0, 135 - abs(12 - hour) * 22),
+                "wind_mw": 0,
+                "storage_mw": 35 if 17 <= hour <= 21 else 0,
+                "grid_mw": 28,
+                "curtailment_mw": 8 if 11 <= hour <= 14 else 0,
+            }
+            for hour in range(24)
+        ],
         "recommendations": [
             "Battery utilisation is highest with a 17:00 to 21:00 discharge window.",
             "The inverter loading ratio is reasonable for the modeled resource profile.",

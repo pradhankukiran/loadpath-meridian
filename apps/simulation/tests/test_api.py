@@ -32,12 +32,21 @@ def test_simulation_submission_returns_queued_job():
             "scenario_id": "scn_base",
             "engine": "pypsa",
             "objective": "Minimise cost while meeting demand",
+            "annual_demand_mwh": 1840000,
+            "peak_load_mw": 482,
+            "renewable_share_target": 76,
+            "assumptions": {
+                "storage_duration_hours": 6,
+                "carbon_price_gbp_per_tonne": 92,
+                "grid_import_limit_mw": 310,
+            },
         },
     )
 
     assert response.status_code == 202
-    assert response.json["status"] == "queued"
+    assert response.json["status"] == "complete"
     assert response.json["engine"] == "pypsa"
+    assert response.json["progress"] == 100
     assert response.json["model"] == "PyPSA energy-system optimisation"
     assert response.json["links"]["latest_result"] == (
         "/api/projects/prj_nw_grid/scenarios/scn_base/results/latest"
@@ -45,6 +54,13 @@ def test_simulation_submission_returns_queued_job():
 
     recent_response = client.get("/api/simulations/recent")
     assert recent_response.json["data"][0]["id"] == response.json["id"]
+
+    result_response = client.get("/api/projects/prj_nw_grid/scenarios/scn_base/results/latest")
+    assert result_response.status_code == 200
+    assert result_response.json["data"]["status"] == "complete"
+    assert len(result_response.json["data"]["dispatch_profile"]) == 24
+    assert result_response.json["data"]["generation_mix"][0]["label"] == "Solar"
+    assert result_response.json["data"]["cost_breakdown"][0]["label"] == "Generation"
 
 
 def test_recent_simulations_endpoint_returns_queue_items():
@@ -65,6 +81,7 @@ def test_latest_result_endpoint_returns_summary():
     assert response.status_code == 200
     assert response.json["data"]["engine"] == "pypsa"
     assert response.json["data"]["renewable_share_percent"] == 70.4
+    assert "generation_mix" in response.json["data"]
 
 
 def test_latest_result_endpoint_returns_not_found_for_missing_result():
