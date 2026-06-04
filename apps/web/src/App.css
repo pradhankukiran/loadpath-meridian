@@ -40,6 +40,12 @@ nav a {
   text-decoration: none;
 }
 
+nav a.active {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+
 nav a:hover,
 a:hover {
   text-decoration-thickness: 3px;
@@ -379,6 +385,43 @@ thead th {
   font-size: 15px;
 }
 
+.connector-page-grid,
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.connector-page-item,
+.report-grid article {
+  border-top: 2px solid #0b0c0c;
+  padding-top: 16px;
+}
+
+.connector-page-item h2,
+.report-grid h2 {
+  margin-bottom: 14px;
+}
+
+.connector-page-item dl {
+  margin: 0;
+}
+
+.connector-page-item div {
+  padding: 10px 0;
+  border-bottom: 1px solid #b1b4b6;
+}
+
+.connector-page-item dt {
+  color: #505a5f;
+  font-size: 15px;
+}
+
+.connector-page-item dd {
+  margin: 2px 0 0;
+  color: #0b0c0c;
+}
+
 .builder-panel h2 {
   margin-bottom: 18px;
 }
@@ -591,8 +634,15 @@ thead th {
   .phase-banner,
   .two-column,
   .scenario-grid,
-  .summary-list div {
+  .summary-list div,
+  .connector-page-grid,
+  .report-grid {
     display: block;
+  }
+
+  .connector-page-item,
+  .report-grid article {
+    margin-bottom: 28px;
   }
 
   nav {
