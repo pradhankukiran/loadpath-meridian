@@ -81,12 +81,22 @@
 - Add deployment environment templates for frontend, platform, and simulation services
 - Document Railway/Vercel deployment, worker start command, health probes, and verification flow
 
+## Phase 10: Real Engine Adapters
+
+- Add engine adapter layer behind the normalized simulation result contract
+- Build PyPSA networks and attempt solver-backed optimisation when PyPSA is installed
+- Build and run pandapower load-flow networks when pandapower is installed
+- Configure NREL PySAM PVWatts models when PySAM is installed
+- Run pvlib clear-sky irradiance calculations when pvlib is installed
+- Add OSeMOSYS tooling boundary through `otoole`
+- Add optional `energy` dependency extra and Docker build arg for real engine packages
+- Surface engine execution status in the workspace result panel
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
-- External simulation engine package integrations
 - Data source integrations
 - Results dashboards
 - Reports and exports

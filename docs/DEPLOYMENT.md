@@ -74,6 +74,17 @@ Required environment variables:
 - `GUNICORN_WORKERS`: defaults to `2`
 - `GUNICORN_TIMEOUT`: defaults to `120`
 
+To run real modelling libraries inside the simulation image, build with:
+
+```bash
+INSTALL_ENERGY_EXTRAS=true
+```
+
+That installs PyPSA, pandapower, NREL PySAM, pvlib, oemof/pyomo tooling,
+OSeMOSYS tooling, and the HiGHS solver. Without this build arg, the API still
+returns normalized results and reports `engine_adapter.status` as `unavailable`
+for engines whose libraries are not present.
+
 ## Railway Simulation Worker
 
 Create a second Railway service from the same `apps/simulation` source and
@@ -109,6 +120,7 @@ After deployment:
 5. Open both `/api/operations/status` endpoints.
 6. Submit a scenario run and confirm latest results render.
 7. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
+8. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
 
 ## Environment Templates
 

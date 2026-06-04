@@ -13,8 +13,34 @@ flask --app meridian_simulation.app:create_app run --port 5001
 pytest
 ```
 
+Install real engine libraries locally:
+
+```bash
+pip install -e ".[dev,energy]"
+```
+
+Build the simulation container with energy libraries:
+
+```bash
+docker build --build-arg INSTALL_ENERGY_EXTRAS=true -t loadpath-simulation .
+```
+
 ## Service Boundary
 
 The Laravel platform API owns users, subscriptions, teams, and project access.
 This Flask API owns technical simulation configuration, execution, result
 summaries, external energy data connectors, and AI analysis context.
+
+## Engine Adapters
+
+The simulation runner normalises every result into the same result contract, then
+calls the selected engine adapter:
+
+- `pypsa`: builds a PyPSA network and attempts optimisation with the configured solver.
+- `pandapower`: builds and runs a load-flow network.
+- `pysam`: configures an NREL PySAM PVWatts model.
+- `pvlib`: runs a clear-sky irradiance calculation.
+- `osemosys`: validates the OSeMOSYS tooling boundary when installed.
+
+Results include `engine_adapter` metadata so the UI can show whether the real
+library executed, only built a model, failed, or is unavailable in the runtime.
