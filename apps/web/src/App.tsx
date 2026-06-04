@@ -5,8 +5,13 @@ import {
   getProject,
   getProjects,
   getRecentSimulationJobs,
+  getDataConnectors,
+  getScenarioDatasets,
+  importScenarioDataset,
   submitSimulation,
+  type DataConnector,
   type Project,
+  type ScenarioDataset,
   type SimulationJob,
   type SimulationResult,
 } from './api'
@@ -23,6 +28,13 @@ const defaultScenarioForm = {
   storage_duration_hours: '6',
   carbon_price: '92',
   grid_import_limit_mw: '310',
+}
+
+const defaultDataImportForm = {
+  location_label: 'Manchester grid node',
+  latitude: '53.48',
+  longitude: '-2.24',
+  forecast_days: '7',
 }
 
 function formatNumber(value: number) {
@@ -48,14 +60,20 @@ function App() {
   const [scenarioForm, setScenarioForm] = useState(defaultScenarioForm)
   const [submissionStatus, setSubmissionStatus] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [connectors, setConnectors] = useState<DataConnector[]>([])
+  const [datasets, setDatasets] = useState<ScenarioDataset[]>([])
+  const [dataImportForm, setDataImportForm] = useState(defaultDataImportForm)
+  const [dataImportStatus, setDataImportStatus] = useState<string>('')
+  const [isImportingData, setIsImportingData] = useState(false)
 
   useEffect(() => {
     let isMounted = true
 
     async function loadWorkspace() {
-      const [projectData, jobData] = await Promise.all([
+      const [projectData, jobData, connectorData] = await Promise.all([
         getProjects(),
         getRecentSimulationJobs(),
+        getDataConnectors(),
       ])
 
       if (!isMounted) {
@@ -64,6 +82,7 @@ function App() {
 
       setProjects(projectData)
       setJobs(jobData)
+      setConnectors(connectorData)
       setSelectedProjectId((current) => current || projectData[0]?.id || '')
       setIsLoading(false)
     }
@@ -144,6 +163,34 @@ function App() {
     }
   }, [selectedProjectId, selectedScenario, selectedScenarioResultId])
 
+  useEffect(() => {
+    if (!selectedProjectId || !selectedScenarioResultId) {
+      setDatasets([])
+      return
+    }
+
+    let isMounted = true
+
+    async function loadDatasets() {
+      const data = await getScenarioDatasets(
+        selectedProjectId,
+        selectedScenarioResultId,
+      )
+
+      if (!isMounted) {
+        return
+      }
+
+      setDatasets(data)
+    }
+
+    loadDatasets()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedProjectId, selectedScenarioResultId])
+
   const activeProjectCount = projects.filter(
     (project) => project.status === 'active',
   ).length
@@ -222,6 +269,38 @@ function App() {
       setSubmissionStatus('Could not create scenario or queue simulation')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  async function handleDataImport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!selectedProjectId || !selectedScenario) {
+      return
+    }
+
+    setIsImportingData(true)
+    setDataImportStatus('Importing Open-Meteo data')
+
+    try {
+      await importScenarioDataset(selectedProjectId, selectedScenario.id, {
+        source: 'open_meteo',
+        location_label: dataImportForm.location_label,
+        latitude: Number(dataImportForm.latitude),
+        longitude: Number(dataImportForm.longitude),
+        forecast_days: Number(dataImportForm.forecast_days),
+      })
+
+      const updatedDatasets = await getScenarioDatasets(
+        selectedProjectId,
+        selectedScenario.id,
+      )
+      setDatasets(updatedDatasets)
+      setDataImportStatus('Imported weather inputs')
+    } catch {
+      setDataImportStatus('Could not import weather inputs')
+    } finally {
+      setIsImportingData(false)
     }
   }
 
@@ -370,6 +449,124 @@ function App() {
 
               <div className="scenario-grid">
                 <div>
+                  <section className="data-panel" aria-labelledby="data-import">
+                    <div className="section-heading">
+                      <h2 id="data-import">Scenario data</h2>
+                      <span className="status-message">
+                        {connectors.length} connectors
+                      </span>
+                    </div>
+                    <div className="connector-list" aria-label="Data connectors">
+                      {connectors.slice(0, 4).map((connector) => (
+                        <div className="connector-item" key={connector.id}>
+                          <strong>{connector.name}</strong>
+                          <span>{connector.coverage}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <form onSubmit={handleDataImport}>
+                      <div className="form-grid compact-form-grid">
+                        <label>
+                          <span>Location label</span>
+                          <input
+                            value={dataImportForm.location_label}
+                            onChange={(event) =>
+                              setDataImportForm({
+                                ...dataImportForm,
+                                location_label: event.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </label>
+                        <label>
+                          <span>Forecast days</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="16"
+                            value={dataImportForm.forecast_days}
+                            onChange={(event) =>
+                              setDataImportForm({
+                                ...dataImportForm,
+                                forecast_days: event.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </label>
+                        <label>
+                          <span>Latitude</span>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            value={dataImportForm.latitude}
+                            onChange={(event) =>
+                              setDataImportForm({
+                                ...dataImportForm,
+                                latitude: event.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </label>
+                        <label>
+                          <span>Longitude</span>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            value={dataImportForm.longitude}
+                            onChange={(event) =>
+                              setDataImportForm({
+                                ...dataImportForm,
+                                longitude: event.target.value,
+                              })
+                            }
+                            required
+                          />
+                        </label>
+                      </div>
+                      <div className="form-actions">
+                        <button type="submit" disabled={isImportingData}>
+                          {isImportingData
+                            ? 'Importing'
+                            : 'Import Open-Meteo data'}
+                        </button>
+                        {dataImportStatus ? (
+                          <span className="status-message">
+                            {dataImportStatus}
+                          </span>
+                        ) : null}
+                      </div>
+                    </form>
+                    {datasets.length ? (
+                      <dl className="dataset-summary">
+                        <div>
+                          <dt>Latest dataset</dt>
+                          <dd>{datasets[0].name}</dd>
+                        </div>
+                        <div>
+                          <dt>Location</dt>
+                          <dd>{datasets[0].location.label}</dd>
+                        </div>
+                        <div>
+                          <dt>Records</dt>
+                          <dd>{formatNumber(datasets[0].summary.records)}</dd>
+                        </div>
+                        <div>
+                          <dt>Mean wind</dt>
+                          <dd>
+                            {datasets[0].summary.wind_speed_10m_mean_kmh} km/h
+                          </dd>
+                        </div>
+                      </dl>
+                    ) : (
+                      <p className="small-copy">
+                        No imported datasets for the selected scenario.
+                      </p>
+                    )}
+                  </section>
+
                   <section className="builder-panel" aria-labelledby="scenario-builder">
                     <h2 id="scenario-builder">Scenario builder</h2>
                     <form onSubmit={handleScenarioSubmit}>
@@ -622,6 +819,51 @@ function App() {
                           </dd>
                         </div>
                       </dl>
+                      {latestResult.input_data_summary ? (
+                        <>
+                          <h3>Input data used</h3>
+                          <dl className="input-summary">
+                            <div>
+                              <dt>Records</dt>
+                              <dd>
+                                {formatNumber(
+                                  latestResult.input_data_summary.records,
+                                )}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Mean temperature</dt>
+                              <dd>
+                                {
+                                  latestResult.input_data_summary
+                                    .temperature_2m_mean_c
+                                }
+                                °C
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Mean wind</dt>
+                              <dd>
+                                {
+                                  latestResult.input_data_summary
+                                    .wind_speed_10m_mean_kmh
+                                }{' '}
+                                km/h
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Mean shortwave</dt>
+                              <dd>
+                                {
+                                  latestResult.input_data_summary
+                                    .shortwave_radiation_mean_wm2
+                                }{' '}
+                                W/m2
+                              </dd>
+                            </div>
+                          </dl>
+                        </>
+                      ) : null}
                       <h3>Generation mix</h3>
                       <div className="result-bars">
                         {latestResult.generation_mix.map((item) => {

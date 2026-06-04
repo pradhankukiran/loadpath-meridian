@@ -46,6 +46,7 @@ export type SimulationResult = {
   reliability_margin_percent: number
   generation_mix: Array<{ label: string; mwh: number }>
   cost_breakdown: Array<{ label: string; million: number }>
+  input_data_summary: DatasetSummary | null
   dispatch_profile: Array<{
     hour: number
     demand_mw: number
@@ -56,6 +57,45 @@ export type SimulationResult = {
     curtailment_mw: number
   }>
   recommendations: string[]
+}
+
+export type DataConnector = {
+  id: string
+  name: string
+  coverage: string
+  uses: string[]
+}
+
+export type DatasetSummary = {
+  records: number
+  temperature_2m_mean_c?: number
+  wind_speed_10m_mean_kmh?: number
+  shortwave_radiation_mean_wm2?: number
+  shortwave_radiation_peak_wm2?: number
+  time_start?: string
+  time_end?: string
+}
+
+export type ScenarioDataset = {
+  id: string
+  source: string
+  name: string
+  location: {
+    label: string
+    latitude: number
+    longitude: number
+  }
+  imported_at: string
+  summary: DatasetSummary
+  sample: Array<Record<string, string | number>>
+}
+
+export type ImportDatasetPayload = {
+  source: 'open_meteo'
+  location_label: string
+  latitude: number
+  longitude: number
+  forecast_days: number
 }
 
 export type CreateProjectPayload = {
@@ -202,6 +242,7 @@ const fallbackResult: SimulationResult = {
     { label: 'Network capacity', million: 79.5 },
     { label: 'Carbon', million: 77.1 },
   ],
+  input_data_summary: null,
   dispatch_profile: Array.from({ length: 24 }, (_, hour) => ({
     hour,
     demand_mw: 220 + hour * 4,
@@ -217,6 +258,33 @@ const fallbackResult: SimulationResult = {
     'Review curtailment around high-wind overnight periods.',
   ],
 }
+
+const fallbackConnectors: DataConnector[] = [
+  {
+    id: 'open_meteo',
+    name: 'Open-Meteo',
+    coverage: 'Global',
+    uses: ['forecast weather', 'solar radiation', 'wind speed'],
+  },
+  {
+    id: 'nasa_power',
+    name: 'NASA POWER',
+    coverage: 'Global',
+    uses: ['meteorology', 'solar radiation', 'climate data'],
+  },
+  {
+    id: 'eia',
+    name: 'EIA Open Data',
+    coverage: 'United States',
+    uses: ['electricity', 'generation', 'prices', 'capacity'],
+  },
+  {
+    id: 'pvwatts',
+    name: 'NREL PVWatts',
+    coverage: 'Global where resource data is available',
+    uses: ['quick PV production estimates'],
+  },
+]
 
 async function getJson<T>(url: string, fallback: T): Promise<T> {
   try {
@@ -305,6 +373,40 @@ export async function getRecentSimulationJobs(): Promise<SimulationJob[]> {
   const response = await getJson<ApiEnvelope<SimulationJob[]>>(
     `${simulationApiUrl}/simulations/recent`,
     { data: fallbackJobs },
+  )
+
+  return response.data
+}
+
+export async function getDataConnectors(): Promise<DataConnector[]> {
+  const response = await getJson<ApiEnvelope<DataConnector[]>>(
+    `${simulationApiUrl}/data-connectors`,
+    { data: fallbackConnectors },
+  )
+
+  return response.data
+}
+
+export async function getScenarioDatasets(
+  projectId: string,
+  scenarioId: string,
+): Promise<ScenarioDataset[]> {
+  const response = await getJson<ApiEnvelope<ScenarioDataset[]>>(
+    `${simulationApiUrl}/projects/${projectId}/scenarios/${scenarioId}/datasets`,
+    { data: [] },
+  )
+
+  return response.data
+}
+
+export async function importScenarioDataset(
+  projectId: string,
+  scenarioId: string,
+  payload: ImportDatasetPayload,
+): Promise<ScenarioDataset> {
+  const response = await postJson<ApiEnvelope<ScenarioDataset>, ImportDatasetPayload>(
+    `${simulationApiUrl}/projects/${projectId}/scenarios/${scenarioId}/datasets/import`,
+    payload,
   )
 
   return response.data
