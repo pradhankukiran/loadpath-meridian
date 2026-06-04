@@ -29,12 +29,20 @@
 - Queue a simulation after scenario creation
 - Refresh project scenario counts and simulation queue state
 
+## Phase 4: Generated Simulation Results
+
+- Add deterministic energy-system simulation runner
+- Generate dispatch, generation mix, cost, emissions, curtailment, and recommendations
+- Store generated results behind the latest-result endpoint
+- Mark submitted simulation jobs complete with progress
+- Render generation mix, cost breakdown, and dispatch samples in React
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
-- Simulation engine integrations
+- External simulation engine package integrations
 - Data source integrations
 - Results dashboards
 - AI assistant backed by the Modal LLM endpoint
