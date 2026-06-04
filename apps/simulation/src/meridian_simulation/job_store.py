@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from meridian_simulation.data_store import latest_dataset_summary
 from meridian_simulation.engine_runner import run_energy_system_simulation
 from meridian_simulation.results import LATEST_RESULTS, RECENT_SIMULATION_JOBS
 
@@ -38,6 +39,10 @@ def complete_job(job: dict, payload: dict) -> None:
     job["status"] = "complete"
     job["progress"] = 100
     job["completed_at"] = datetime.now(UTC).isoformat()
+    payload["input_data_summary"] = latest_dataset_summary(
+        payload["project_id"],
+        payload["scenario_id"],
+    )
     LATEST_RESULTS[(payload["project_id"], payload["scenario_id"])] = run_energy_system_simulation(payload)
 
 

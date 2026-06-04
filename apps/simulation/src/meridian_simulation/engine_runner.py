@@ -9,6 +9,7 @@ def run_energy_system_simulation(payload: dict) -> dict:
     renewable_target = float(payload.get("renewable_share_target", 70))
     assumptions = payload.get("assumptions", {})
     engine = payload["engine"]
+    input_data_summary = payload.get("input_data_summary")
 
     dispatch_profile = build_dispatch_profile(
         annual_demand_mwh=annual_demand_mwh,
@@ -68,6 +69,7 @@ def run_energy_system_simulation(payload: dict) -> dict:
             {"label": "Network capacity", "million": round(network_cost / 1_000_000, 1)},
             {"label": "Carbon", "million": round(carbon_cost / 1_000_000, 1)},
         ],
+        "input_data_summary": input_data_summary,
         "dispatch_profile": dispatch_profile,
         "recommendations": build_recommendations(
             renewable_share=renewable_share,
