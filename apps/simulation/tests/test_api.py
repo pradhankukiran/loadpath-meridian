@@ -38,9 +38,13 @@ def test_simulation_submission_returns_queued_job():
     assert response.status_code == 202
     assert response.json["status"] == "queued"
     assert response.json["engine"] == "pypsa"
+    assert response.json["model"] == "PyPSA energy-system optimisation"
     assert response.json["links"]["latest_result"] == (
         "/api/projects/prj_nw_grid/scenarios/scn_base/results/latest"
     )
+
+    recent_response = client.get("/api/simulations/recent")
+    assert recent_response.json["data"][0]["id"] == response.json["id"]
 
 
 def test_recent_simulations_endpoint_returns_queue_items():
@@ -49,8 +53,8 @@ def test_recent_simulations_endpoint_returns_queue_items():
     response = client.get("/api/simulations/recent")
 
     assert response.status_code == 200
-    assert response.json["data"][0]["id"] == "sim_1042"
-    assert response.json["data"][0]["progress"] == 64
+    assert len(response.json["data"]) >= 3
+    assert {"id", "status", "progress", "engine"}.issubset(response.json["data"][0])
 
 
 def test_latest_result_endpoint_returns_summary():

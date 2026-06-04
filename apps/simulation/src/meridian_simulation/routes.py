@@ -1,10 +1,9 @@
-from uuid import uuid4
-
 from flask import Blueprint, current_app, jsonify, request
 from pydantic import BaseModel, Field, ValidationError
 
 from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
-from meridian_simulation.results import LATEST_RESULTS, RECENT_SIMULATION_JOBS
+from meridian_simulation.job_store import enqueue_job, list_recent_jobs
+from meridian_simulation.results import LATEST_RESULTS
 
 api = Blueprint("api", __name__)
 
@@ -44,7 +43,7 @@ def data_connectors():
 
 @api.get("/simulations/recent")
 def recent_simulations():
-    return {"data": RECENT_SIMULATION_JOBS}
+    return {"data": list_recent_jobs()}
 
 
 @api.get("/projects/<project_id>/scenarios/<scenario_id>/results/latest")
@@ -68,20 +67,9 @@ def create_simulation():
     if payload.engine not in engine_ids:
         return jsonify({"errors": [{"msg": "Unknown simulation engine"}]}), 422
 
-    job_id = f"sim_{uuid4().hex[:12]}"
+    job = enqueue_job(payload.model_dump())
 
-    return jsonify({
-        "id": job_id,
-        "status": "queued",
-        "progress": 0,
-        "project_id": payload.project_id,
-        "scenario_id": payload.scenario_id,
-        "engine": payload.engine,
-        "objective": payload.objective,
-        "links": {
-            "latest_result": f"/api/projects/{payload.project_id}/scenarios/{payload.scenario_id}/results/latest",
-        },
-    }), 202
+    return jsonify(job), 202
 
 
 @api.post("/assistant/context")
