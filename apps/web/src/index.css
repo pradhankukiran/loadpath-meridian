@@ -1,0 +1,20 @@
+:root {
+  color: #0b0c0c;
+  background: #ffffff;
+  font-family: Arial, sans-serif;
+  font-size: 19px;
+  line-height: 1.31579;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+}
