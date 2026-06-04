@@ -4,7 +4,7 @@
 }
 
 .container {
-  width: min(1360px, calc(100% - 48px));
+  width: min(1480px, calc(100% - 56px));
   margin: 0 auto;
 }
 
@@ -75,7 +75,7 @@ a:hover {
 }
 
 .page-heading {
-  max-width: 960px;
+  max-width: 1040px;
   padding: 44px 0 32px;
 }
 
@@ -205,8 +205,8 @@ a {
 
 .two-column {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  gap: 48px;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 56px;
   align-items: start;
 }
 
@@ -346,8 +346,8 @@ thead th {
 
 .scenario-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px 360px;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) 390px 390px;
+  gap: 36px;
   align-items: start;
 }
 
