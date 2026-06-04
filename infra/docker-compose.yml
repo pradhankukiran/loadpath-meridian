@@ -38,13 +38,19 @@ services:
   simulation:
     build:
       context: ../apps/simulation
+      args:
+        INSTALL_ENERGY_EXTRAS: ${INSTALL_ENERGY_EXTRAS:-true}
     ports:
       - "5001:5001"
     depends_on:
+      mariadb:
+        condition: service_healthy
       redis:
         condition: service_started
     environment:
       REDIS_URL: redis://redis:6379/0
+      SIMULATION_DATABASE_URL: mysql+pymysql://meridian:meridian@mariadb:3306/meridian
+      SIMULATION_SYNC_JOBS: "false"
       MODAL_LLM_ENDPOINT: ${MODAL_LLM_ENDPOINT:-}
       NREL_API_KEY: ${NREL_API_KEY:-}
       EIA_API_KEY: ${EIA_API_KEY:-}
@@ -52,12 +58,18 @@ services:
   worker:
     build:
       context: ../apps/simulation
+      args:
+        INSTALL_ENERGY_EXTRAS: ${INSTALL_ENERGY_EXTRAS:-true}
     command: celery -A meridian_simulation.tasks.celery_app worker --loglevel=INFO
     depends_on:
+      mariadb:
+        condition: service_healthy
       redis:
         condition: service_started
     environment:
       REDIS_URL: redis://redis:6379/0
+      SIMULATION_DATABASE_URL: mysql+pymysql://meridian:meridian@mariadb:3306/meridian
+      SIMULATION_SYNC_JOBS: "false"
       MODAL_LLM_ENDPOINT: ${MODAL_LLM_ENDPOINT:-}
       NREL_API_KEY: ${NREL_API_KEY:-}
       EIA_API_KEY: ${EIA_API_KEY:-}
