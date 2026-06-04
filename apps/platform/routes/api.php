@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Project;
+use App\Models\Scenario;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -11,22 +13,32 @@ Route::get('/health', function () {
 
 Route::get('/projects', function () {
     return [
-        'data' => [
-            [
-                'id' => 'prj_nw_grid',
-                'name' => 'North West grid reinforcement',
-                'region' => 'United Kingdom',
-                'scenario_count' => 8,
-                'status' => 'active',
-            ],
-            [
-                'id' => 'prj_solar_storage',
-                'name' => 'Solar and storage capacity study',
-                'region' => 'Arizona, United States',
-                'scenario_count' => 5,
-                'status' => 'review',
-            ],
-        ],
+        'data' => Project::query()
+            ->withCount('scenarios')
+            ->orderBy('name')
+            ->get(),
+    ];
+});
+
+Route::get('/projects/{project}', function (Project $project) {
+    return [
+        'data' => $project->load('scenarios'),
+    ];
+});
+
+Route::get('/projects/{project}/scenarios', function (Project $project) {
+    return [
+        'data' => $project->scenarios()
+            ->orderBy('name')
+            ->get(),
+    ];
+});
+
+Route::get('/projects/{project}/scenarios/{scenario}', function (Project $project, Scenario $scenario) {
+    abort_unless($scenario->project_id === $project->id, 404);
+
+    return [
+        'data' => $scenario,
     ];
 });
 
