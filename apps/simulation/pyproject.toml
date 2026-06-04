@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loadpath-meridian-simulation"
+version = "0.1.0"
+description = "Flask simulation service for Loadpath Meridian"
+requires-python = ">=3.11"
+dependencies = [
+    "celery>=5.4",
+    "flask>=3.0",
+    "gunicorn>=22.0",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "redis>=5.0",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+]
+energy = [
+    "linopy>=0.5",
+    "nrel-pysam>=6.0",
+    "oemof.solph>=0.5",
+    "pandapower>=2.14",
+    "pvlib>=0.10",
+    "pyomo>=6.8",
+    "pypsa>=0.30",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
