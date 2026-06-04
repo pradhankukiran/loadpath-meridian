@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from meridian_simulation.assistant import analyse_scenario
 from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
+from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
 from meridian_simulation.job_store import enqueue_job, list_recent_jobs
@@ -109,6 +110,11 @@ def latest_result(project_id: str, scenario_id: str):
         return jsonify({"errors": [{"msg": "No completed result for scenario"}]}), 404
 
     return {"data": result}
+
+
+@api.get("/projects/<project_id>/comparisons")
+def project_comparison(project_id: str):
+    return {"data": compare_project_scenarios(project_id)}
 
 
 @api.post("/simulations")
