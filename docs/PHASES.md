@@ -37,6 +37,15 @@
 - Mark submitted simulation jobs complete with progress
 - Render generation mix, cost breakdown, and dispatch samples in React
 
+## Phase 5: External Data Connectors
+
+- Add Open-Meteo live weather import
+- Add connector contracts for NASA POWER, EIA, and PVWatts
+- Store imported datasets by project and scenario
+- Feed latest imported dataset summary into generated simulation results
+- Add scenario data import workflow in React
+- Render imported weather/input summaries
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
