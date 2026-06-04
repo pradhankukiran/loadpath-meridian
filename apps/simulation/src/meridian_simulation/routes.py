@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, jsonify, request
 from pydantic import BaseModel, Field, ValidationError
 
+from meridian_simulation.assistant import analyse_scenario
 from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
@@ -150,4 +151,23 @@ def assistant_context():
                 "cost and emissions summary",
             ],
         },
+    }
+
+
+@api.post("/assistant/analyse")
+def assistant_analyse():
+    try:
+        payload = AssistantRequest.model_validate(request.get_json(force=True))
+    except ValidationError as exc:
+        return jsonify({"errors": exc.errors()}), 422
+
+    settings = current_app.config["MERIDIAN_SETTINGS"]
+
+    return {
+        "data": analyse_scenario(
+            project_id=payload.project_id,
+            scenario_id=payload.scenario_id,
+            message=payload.message,
+            modal_endpoint=settings.modal_llm_endpoint,
+        )
     }
