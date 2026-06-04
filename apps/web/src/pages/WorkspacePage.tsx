@@ -836,6 +836,42 @@ export function WorkspacePage() {
                           </dd>
                         </div>
                       </dl>
+                      {latestResult.engine_adapter ? (
+                        <div className="engine-adapter">
+                          <h3>Engine execution</h3>
+                          <p>
+                            <span
+                              className={`tag tag-${latestResult.engine_adapter.status}`}
+                            >
+                              {latestResult.engine_adapter.status.replace('_', ' ')}
+                            </span>
+                          </p>
+                          <dl className="input-summary">
+                            <div>
+                              <dt>Adapter</dt>
+                              <dd>{latestResult.engine_adapter.engine}</dd>
+                            </div>
+                            {latestResult.engine_adapter.library ? (
+                              <div>
+                                <dt>Library</dt>
+                                <dd>
+                                  {latestResult.engine_adapter.library}
+                                  {latestResult.engine_adapter.library_version
+                                    ? ` ${latestResult.engine_adapter.library_version}`
+                                    : ''}
+                                </dd>
+                              </div>
+                            ) : null}
+                            {latestResult.engine_adapter.solver ? (
+                              <div>
+                                <dt>Solver</dt>
+                                <dd>{latestResult.engine_adapter.solver}</dd>
+                              </div>
+                            ) : null}
+                          </dl>
+                          <p>{latestResult.engine_adapter.message}</p>
+                        </div>
+                      ) : null}
                       {latestResult.input_data_summary ? (
                         <>
                           <h3>Input data used</h3>

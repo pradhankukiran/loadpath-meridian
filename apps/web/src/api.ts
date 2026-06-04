@@ -39,6 +39,16 @@ export type SimulationResult = {
   scenario_id: string
   status: string
   engine: string
+  engine_adapter?: {
+    engine: string
+    status: string
+    library?: string
+    library_version?: string | null
+    solver?: string
+    message: string
+    model?: Record<string, number | string | null>
+  }
+  engine_resource_summary?: Record<string, number | string>
   total_cost_million: number
   renewable_share_percent: number
   emissions_tonnes_co2e: number
@@ -299,6 +309,11 @@ const fallbackResult: SimulationResult = {
     'Test a tighter grid import constraint against winter peak demand.',
     'Review curtailment around high-wind overnight periods.',
   ],
+  engine_adapter: {
+    engine: 'pypsa',
+    status: 'unavailable',
+    message: 'Install the energy extra to run PyPSA models.',
+  },
 }
 
 const fallbackComparison: ScenarioComparison = {

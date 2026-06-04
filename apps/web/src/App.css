@@ -255,7 +255,8 @@ thead th {
 }
 
 .tag-active,
-.tag-complete {
+.tag-complete,
+.tag-executed {
   background: #cce2d8;
   color: #005a30;
 }
@@ -272,6 +273,7 @@ thead th {
   color: #505a5f;
 }
 
+.tag-model_built,
 .tag-local {
   background: #f3f2f1;
   color: #505a5f;
@@ -280,6 +282,12 @@ thead th {
 .tag-modal {
   background: #cce2d8;
   color: #005a30;
+}
+
+.tag-unavailable,
+.tag-failed {
+  background: #f6d7d2;
+  color: #942514;
 }
 
 .queue {
@@ -682,6 +690,12 @@ thead th {
 .assistant-response {
   margin-top: 18px;
   padding-top: 14px;
+  border-top: 1px solid #b1b4b6;
+}
+
+.engine-adapter {
+  margin-top: 18px;
+  padding-top: 12px;
   border-top: 1px solid #b1b4b6;
 }
 
