@@ -60,6 +60,7 @@ a:hover {
 }
 
 .phase-banner strong {
+  display: inline-block;
   border: 2px solid #0b0c0c;
   padding: 2px 6px;
   text-transform: uppercase;
@@ -274,6 +275,7 @@ thead th {
 .queue li {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 14px;
   padding: 14px 0;
   border-bottom: 1px solid #b1b4b6;
@@ -392,6 +394,10 @@ thead th {
 
   nav {
     padding-bottom: 14px;
+  }
+
+  .phase-banner strong {
+    margin: 0 10px 8px 0;
   }
 
   h1 {
