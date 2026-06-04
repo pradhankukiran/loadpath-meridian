@@ -20,12 +20,20 @@
 - Connect the React dashboard to Laravel and Flask services
 - Verify desktop and mobile rendering with screenshots
 
+## Phase 3: Scenario Builder
+
+- Add project creation API
+- Add scenario creation API
+- Add simulation queue submission contract
+- Add scenario builder form in the project workspace
+- Queue a simulation after scenario creation
+- Refresh project scenario counts and simulation queue state
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
-- Project and scenario creation forms
 - Simulation engine integrations
 - Data source integrations
 - Results dashboards
