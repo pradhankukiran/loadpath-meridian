@@ -102,6 +102,25 @@ def list_recent_job_records(settings: Settings, limit: int = 20) -> list[dict]:
         return [job_from_row(row) for row in rows]
 
 
+def job_status_counts(settings: Settings) -> dict[str, int]:
+    engine = database_engine(settings.database_url)
+    counts = {
+        "queued": 0,
+        "running": 0,
+        "complete": 0,
+        "failed": 0,
+    }
+
+    with engine.connect() as connection:
+        rows = connection.execute(select(simulation_jobs.c.status)).mappings()
+
+        for row in rows:
+            status = row["status"]
+            counts[status] = counts.get(status, 0) + 1
+
+    return counts
+
+
 def get_job_payload(settings: Settings, job_id: str) -> dict | None:
     row = get_job_row(settings, job_id)
     if row is None:

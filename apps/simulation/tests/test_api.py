@@ -14,6 +14,15 @@ def test_health_endpoint():
     }
 
 
+def test_request_id_header_is_echoed():
+    client = create_app().test_client()
+
+    response = client.get("/api/health", headers={"X-Request-ID": "req_test_123"})
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == "req_test_123"
+
+
 def test_operations_status_endpoint_reports_runtime_configuration():
     app = create_app(
         Settings(
@@ -34,8 +43,14 @@ def test_operations_status_endpoint_reports_runtime_configuration():
     assert response.json["data"]["status"] == "degraded"
     assert response.json["data"]["environment"] == "production"
     assert response.json["data"]["checks"]["redis"] == "unavailable"
+    assert response.json["data"]["checks"]["worker"] == "not_required"
+    assert response.json["data"]["redis"]["status"] == "unavailable"
+    assert response.json["data"]["worker"]["mode"] == "sync"
+    assert response.json["data"]["queue"]["mode"] == "sync"
+    assert response.json["data"]["queue"]["counts"]["complete"] >= 1
     assert response.json["data"]["checks"]["modal_llm"] == "configured"
     assert response.json["data"]["frontend_origins"] == ["https://loadpath.example"]
+    assert response.json["data"]["request_id_header"] == "X-Request-ID"
 
 
 def test_cors_headers_allow_configured_frontend_origin():

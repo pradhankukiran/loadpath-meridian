@@ -11,13 +11,14 @@ class PlatformApiTest extends TestCase
 
     public function test_platform_health_endpoint_is_available(): void
     {
-        $response = $this->getJson('/api/health');
+        $response = $this->withHeader('X-Request-ID', 'req_platform_test')->getJson('/api/health');
 
         $response->assertOk()
             ->assertJson([
                 'service' => 'loadpath-meridian-platform',
                 'status' => 'ok',
-            ]);
+            ])
+            ->assertHeader('X-Request-ID', 'req_platform_test');
     }
 
     public function test_operations_status_endpoint_reports_runtime_configuration(): void
@@ -28,7 +29,8 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('data.service', 'loadpath-meridian-platform')
             ->assertJsonPath('data.status', 'ok')
             ->assertJsonPath('data.checks.database', 'ok')
-            ->assertJsonPath('data.frontend_url', 'http://localhost:5173');
+            ->assertJsonPath('data.frontend_url', 'http://localhost:5173')
+            ->assertJsonPath('data.request_id_header', 'X-Request-ID');
     }
 
     public function test_projects_endpoint_returns_project_summaries(): void

@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -16,6 +17,8 @@ from meridian_simulation.database import (
     scenario_result_history_records,
 )
 from meridian_simulation.engine_runner import run_energy_system_simulation
+
+logger = logging.getLogger("meridian_simulation.jobs")
 
 
 def list_recent_jobs(settings: Settings | None = None) -> list[dict]:
@@ -107,7 +110,16 @@ def complete_job(job_id: str, settings: Settings | None = None) -> dict:
         result = run_energy_system_simulation(payload)
         return mark_job_complete(settings, job_id, result)
     except Exception as exc:
-        return mark_job_failed(settings, job_id, str(exc))
+        error_summary = f"{exc.__class__.__name__}: {exc}"
+        logger.exception(
+            "simulation_job_failed",
+            extra={
+                "service": "loadpath-meridian-simulation",
+                "job_id": job_id,
+                "event": "simulation_job_failed",
+            },
+        )
+        return mark_job_failed(settings, job_id, error_summary)
 
 
 def model_label(engine: str) -> str:

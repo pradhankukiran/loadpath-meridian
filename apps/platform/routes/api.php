@@ -34,6 +34,11 @@ Route::get('/operations/status', function () {
                 'cache' => config('cache.default'),
             ],
             'frontend_url' => config('cors.allowed_origins.0'),
+            'logging' => [
+                'channel' => config('logging.default'),
+                'level' => config('logging.channels.'.config('logging.default').'.level', config('app.debug') ? 'debug' : 'info'),
+            ],
+            'request_id_header' => 'X-Request-ID',
         ],
     ];
 });
