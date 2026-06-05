@@ -50,6 +50,20 @@ function maxOf(values: number[]) {
   return Math.max(...values, 1)
 }
 
+function resourceLabel(key: string) {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase())
+}
+
+function resourceValue(value: number | string) {
+  if (typeof value === 'number') {
+    return Number.isInteger(value) ? formatNumber(value) : value.toFixed(2)
+  }
+
+  return value
+}
+
 export function WorkspacePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
@@ -871,6 +885,21 @@ export function WorkspacePage() {
                           </dl>
                           <p>{latestResult.engine_adapter.message}</p>
                         </div>
+                      ) : null}
+                      {latestResult.engine_resource_summary ? (
+                        <>
+                          <h3>Engine resource</h3>
+                          <dl className="input-summary">
+                            {Object.entries(
+                              latestResult.engine_resource_summary,
+                            ).map(([key, value]) => (
+                              <div key={key}>
+                                <dt>{resourceLabel(key)}</dt>
+                                <dd>{resourceValue(value)}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        </>
                       ) : null}
                       {latestResult.input_data_summary ? (
                         <>

@@ -102,6 +102,15 @@
 - Configure Docker Compose so Flask and Celery worker share MariaDB and Redis
 - Add operations status reporting for simulation database and queue mode
 
+## Phase 12: PySAM Weather-Resource Execution
+
+- Store complete Open-Meteo hourly records alongside preview samples
+- Snapshot imported weather datasets into queued simulation payloads for Celery workers
+- Convert imported hourly weather into PySAM PVWatts `solar_resource_data`
+- Execute PVWatts when PySAM and weather records are available
+- Annualize PySAM generation outputs into the normalized result contract
+- Surface PySAM resource metadata in the workspace result panel
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
