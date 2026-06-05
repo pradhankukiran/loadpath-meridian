@@ -15,22 +15,29 @@ export function ReportsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [comparison, setComparison] = useState<ScenarioComparison | null>(null)
+  const [loadStatus, setLoadStatus] = useState('Loading reports')
   const [exportStatus, setExportStatus] = useState('')
   const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
 
-    getProjects().then((data) => {
-      if (!isMounted) {
-        return
-      }
+    getProjects()
+      .then((data) => {
+        if (!isMounted) {
+          return
+        }
 
-      setProjects(data)
-      setSelectedProjectId(
-        (current) => routeProjectId || current || data[0]?.id || '',
-      )
-    })
+        setProjects(data)
+        setSelectedProjectId(
+          (current) => routeProjectId || current || data[0]?.id || '',
+        )
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoadStatus('Could not load projects for reports')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -44,11 +51,19 @@ export function ReportsPage() {
 
     let isMounted = true
 
-    getScenarioComparison(selectedProjectId).then((data) => {
-      if (isMounted) {
-        setComparison(data)
-      }
-    })
+    getScenarioComparison(selectedProjectId)
+      .then((data) => {
+        if (isMounted) {
+          setComparison(data)
+          setLoadStatus('')
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setComparison(null)
+          setLoadStatus('Could not load scenario comparison')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -135,6 +150,13 @@ export function ReportsPage() {
           <Link to={`/projects/${selectedProjectId}`}>Open project</Link>
         ) : null}
       </section>
+
+      {loadStatus ? (
+        <section className="decision-panel">
+          <h2>Reports unavailable</h2>
+          <p>{loadStatus}</p>
+        </section>
+      ) : null}
 
       {comparison ? (
         <>

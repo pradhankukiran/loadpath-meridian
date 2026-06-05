@@ -6,6 +6,7 @@ import { formatNumber, formatPercent } from '../lib/format'
 export function ProjectDetailPage() {
   const { projectId = '' } = useParams()
   const [project, setProject] = useState<Project | null>(null)
+  const [loadStatus, setLoadStatus] = useState('Loading project')
 
   useEffect(() => {
     if (!projectId) {
@@ -14,11 +15,18 @@ export function ProjectDetailPage() {
 
     let isMounted = true
 
-    getProject(projectId).then((data) => {
-      if (isMounted) {
-        setProject(data)
-      }
-    })
+    getProject(projectId)
+      .then((data) => {
+        if (isMounted) {
+          setProject(data)
+          setLoadStatus('')
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoadStatus('Could not load project')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -26,7 +34,15 @@ export function ProjectDetailPage() {
   }, [projectId])
 
   if (!project) {
-    return <p>Loading project.</p>
+    return (
+      <section className="page-heading">
+        <span className="caption">Project</span>
+        <h1>{loadStatus}</h1>
+        <div className="actions">
+          <Link to="/projects">Back to projects</Link>
+        </div>
+      </section>
+    )
   }
 
   const scenarios = project.scenarios ?? []
@@ -83,7 +99,11 @@ export function ProjectDetailPage() {
             {scenarios.length ? (
               scenarios.map((scenario) => (
                 <tr key={scenario.id}>
-                  <th scope="row">{scenario.name}</th>
+                  <th scope="row">
+                    <Link to={`/projects/${project.id}/scenarios/${scenario.id}`}>
+                      {scenario.name}
+                    </Link>
+                  </th>
                   <td>{scenario.engine}</td>
                   <td>{scenario.horizon}</td>
                   <td>{formatNumber(scenario.peak_load_mw)} MW</td>

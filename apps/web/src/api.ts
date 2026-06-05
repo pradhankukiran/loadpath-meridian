@@ -244,6 +244,8 @@ const platformApiUrl =
 const simulationApiUrl =
   import.meta.env.VITE_SIMULATION_API_URL ?? 'http://localhost:5001/api'
 
+const useApiFixtures = import.meta.env.VITE_ENABLE_API_FIXTURES === 'true'
+
 export const fallbackProjects: Project[] = [
   {
     id: 'prj_nw_grid',
@@ -452,12 +454,16 @@ async function getJson<T>(url: string, fallback: T): Promise<T> {
     })
 
     if (!response.ok) {
-      return fallback
+      throw new Error(`Request failed with status ${response.status}`)
     }
 
     return (await response.json()) as T
-  } catch {
-    return fallback
+  } catch (error) {
+    if (useApiFixtures) {
+      return fallback
+    }
+
+    throw error
   }
 }
 

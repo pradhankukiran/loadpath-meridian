@@ -36,21 +36,29 @@ export function OperationsPage() {
     platform: null,
     simulation: null,
   })
+  const [loadStatus, setLoadStatus] = useState('Loading service health')
 
   useEffect(() => {
     let isMounted = true
 
     async function loadOperations() {
-      const [platform, simulation] = await Promise.all([
-        getPlatformOperationsStatus(),
-        getSimulationOperationsStatus(),
-      ])
+      try {
+        const [platform, simulation] = await Promise.all([
+          getPlatformOperationsStatus(),
+          getSimulationOperationsStatus(),
+        ])
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        setServices({ platform, simulation })
+        setLoadStatus('')
+      } catch {
+        if (isMounted) {
+          setLoadStatus('Could not load service health')
+        }
       }
-
-      setServices({ platform, simulation })
     }
 
     loadOperations()
@@ -101,6 +109,7 @@ export function OperationsPage() {
       </section>
 
       <section className="operations-grid" aria-label="Service checks">
+        {loadStatus ? <p>{loadStatus}</p> : null}
         {[services.platform, services.simulation].map((service) =>
           service ? (
             <article key={service.service} className="operations-service">

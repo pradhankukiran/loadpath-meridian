@@ -2,7 +2,6 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   analyseScenario,
-  createScenario,
   getLatestResult,
   getProject,
   getProjects,
@@ -11,7 +10,6 @@ import {
   getDataConnectors,
   getScenarioDatasets,
   importScenarioDataset,
-  submitSimulation,
   type AssistantAnalysis,
   type DataConnector,
   type Project,
@@ -27,19 +25,6 @@ import {
   formatOptionalPercent,
   formatPercent,
 } from '../lib/format'
-
-const defaultScenarioForm = {
-  name: 'Storage sensitivity run',
-  objective: 'Test whether additional battery storage reduces curtailment and peak grid imports.',
-  engine: 'pypsa',
-  horizon: '2035',
-  annual_demand_mwh: '1840000',
-  peak_load_mw: '482',
-  renewable_share_target: '76',
-  storage_duration_hours: '6',
-  carbon_price: '92',
-  grid_import_limit_mw: '310',
-}
 
 const defaultDataImportForm = {
   location_label: 'Manchester grid node',
@@ -87,7 +72,6 @@ export function WorkspacePage() {
   const { projectId: routeProjectId = '' } = useParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
-  const [selectedScenarioId, setSelectedScenarioId] = useState<string>('')
   const [projectDetail, setProjectDetail] = useState<Project | null>(null)
   const [jobs, setJobs] = useState<SimulationJob[]>([])
   const [latestResult, setLatestResult] = useState<SimulationResult | null>(null)
@@ -95,9 +79,7 @@ export function WorkspacePage() {
     SimulationResultHistoryItem[]
   >([])
   const [isLoading, setIsLoading] = useState(true)
-  const [scenarioForm, setScenarioForm] = useState(defaultScenarioForm)
-  const [submissionStatus, setSubmissionStatus] = useState<string>('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [workspaceStatus, setWorkspaceStatus] = useState('')
   const [connectors, setConnectors] = useState<DataConnector[]>([])
   const [datasets, setDatasets] = useState<ScenarioDataset[]>([])
   const [dataImportForm, setDataImportForm] = useState(defaultDataImportForm)
@@ -112,23 +94,33 @@ export function WorkspacePage() {
     let isMounted = true
 
     async function loadWorkspace() {
-      const [projectData, jobData, connectorData] = await Promise.all([
-        getProjects(),
-        getRecentSimulationJobs(),
-        getDataConnectors(),
-      ])
+      try {
+        const [projectData, jobData, connectorData] = await Promise.all([
+          getProjects(),
+          getRecentSimulationJobs(),
+          getDataConnectors(),
+        ])
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        setProjects(projectData)
+        setJobs(jobData)
+        setConnectors(connectorData)
+        setSelectedProjectId(
+          (current) => routeProjectId || current || projectData[0]?.id || '',
+        )
+        setWorkspaceStatus('')
+      } catch {
+        if (isMounted) {
+          setWorkspaceStatus('Could not load workspace data')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
       }
-
-      setProjects(projectData)
-      setJobs(jobData)
-      setConnectors(connectorData)
-      setSelectedProjectId(
-        (current) => routeProjectId || current || projectData[0]?.id || '',
-      )
-      setIsLoading(false)
     }
 
     loadWorkspace()
@@ -146,13 +138,20 @@ export function WorkspacePage() {
     let isMounted = true
 
     async function loadProject() {
-      const detail = await getProject(selectedProjectId)
+      try {
+        const detail = await getProject(selectedProjectId)
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        setProjectDetail(detail)
+      } catch {
+        if (isMounted) {
+          setProjectDetail(null)
+          setWorkspaceStatus('Could not load selected project')
+        }
       }
-
-      setProjectDetail(detail)
     }
 
     loadProject()
@@ -163,33 +162,37 @@ export function WorkspacePage() {
   }, [selectedProjectId])
 
   const scenarios = projectDetail?.scenarios ?? []
-  const selectedScenario =
-    scenarios.find((scenario) => scenario.id === selectedScenarioId) ??
-    scenarios[0] ??
-    null
+  const selectedScenario = scenarios[0] ?? null
   const selectedScenarioResultId = selectedScenario?.id ?? ''
 
   useEffect(() => {
     let isMounted = true
 
     async function loadScenarioResults() {
-      const [result, history] =
-        selectedProjectId && selectedScenario
-          ? await Promise.all([
-              getLatestResult(selectedProjectId, selectedScenarioResultId),
-              getScenarioResultHistory(
-                selectedProjectId,
-                selectedScenarioResultId,
-              ),
-            ])
-          : [null, []]
+      try {
+        const [result, history] =
+          selectedProjectId && selectedScenario
+            ? await Promise.all([
+                getLatestResult(selectedProjectId, selectedScenarioResultId),
+                getScenarioResultHistory(
+                  selectedProjectId,
+                  selectedScenarioResultId,
+                ),
+              ])
+            : [null, []]
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        setLatestResult(result)
+        setResultHistory(history)
+      } catch {
+        if (isMounted) {
+          setLatestResult(null)
+          setResultHistory([])
+        }
       }
-
-      setLatestResult(result)
-      setResultHistory(history)
     }
 
     loadScenarioResults()
@@ -203,16 +206,22 @@ export function WorkspacePage() {
     let isMounted = true
 
     async function loadDatasets() {
-      const data =
-        selectedProjectId && selectedScenarioResultId
-          ? await getScenarioDatasets(selectedProjectId, selectedScenarioResultId)
-          : []
+      try {
+        const data =
+          selectedProjectId && selectedScenarioResultId
+            ? await getScenarioDatasets(selectedProjectId, selectedScenarioResultId)
+            : []
 
-      if (!isMounted) {
-        return
+        if (!isMounted) {
+          return
+        }
+
+        setDatasets(data)
+      } catch {
+        if (isMounted) {
+          setDatasets([])
+        }
       }
-
-      setDatasets(data)
     }
 
     loadDatasets()
@@ -245,73 +254,6 @@ export function WorkspacePage() {
       job.project_id === selectedProjectId &&
       job.scenario_id === selectedScenarioResultId,
   )
-
-  async function refreshWorkspace(projectId: string) {
-    const [projectData, projectDataDetail, jobData] = await Promise.all([
-      getProjects(),
-      getProject(projectId),
-      getRecentSimulationJobs(),
-    ])
-
-    setProjects(projectData)
-    setProjectDetail(projectDataDetail)
-    setJobs(jobData)
-  }
-
-  async function handleScenarioSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!selectedProjectId) {
-      return
-    }
-
-    setIsSubmitting(true)
-    setSubmissionStatus('Creating scenario')
-
-    try {
-      const scenario = await createScenario(selectedProjectId, {
-        name: scenarioForm.name,
-        objective: scenarioForm.objective,
-        engine: scenarioForm.engine,
-        horizon: scenarioForm.horizon,
-        annual_demand_mwh: Number(scenarioForm.annual_demand_mwh),
-        peak_load_mw: Number(scenarioForm.peak_load_mw),
-        renewable_share_target: Number(scenarioForm.renewable_share_target),
-        assumptions: {
-          storage_duration_hours: Number(scenarioForm.storage_duration_hours),
-          carbon_price_gbp_per_tonne: Number(scenarioForm.carbon_price),
-          grid_import_limit_mw: Number(scenarioForm.grid_import_limit_mw),
-        },
-      })
-
-      setSubmissionStatus('Queueing simulation')
-
-      const job = await submitSimulation({
-        project_id: selectedProjectId,
-        scenario_id: scenario.id,
-        engine: scenario.engine,
-        objective: scenario.objective,
-        annual_demand_mwh: scenario.annual_demand_mwh,
-        peak_load_mw: scenario.peak_load_mw,
-        renewable_share_target: scenario.renewable_share_target,
-        assumptions: scenario.assumptions,
-      })
-
-      setSelectedScenarioId(scenario.id)
-      await refreshWorkspace(selectedProjectId)
-      const [generatedResult, generatedHistory] = await Promise.all([
-        getLatestResult(selectedProjectId, scenario.id),
-        getScenarioResultHistory(selectedProjectId, scenario.id),
-      ])
-      setLatestResult(generatedResult)
-      setResultHistory(generatedHistory)
-      setSubmissionStatus(`Completed ${job.id}`)
-    } catch {
-      setSubmissionStatus('Could not create scenario or queue simulation')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   async function handleDataImport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -420,6 +362,13 @@ export function WorkspacePage() {
             <strong>{isLoading ? '-' : completedJobCount}</strong>
           </div>
         </section>
+
+        {workspaceStatus ? (
+          <section className="decision-panel">
+            <h2>Workspace unavailable</h2>
+            <p>{workspaceStatus}</p>
+          </section>
+        ) : null}
 
         <section className="two-column">
           <div>
@@ -637,182 +586,17 @@ export function WorkspacePage() {
                     )}
                   </section>
 
-                  <section className="builder-panel" aria-labelledby="scenario-builder">
-                    <h2 id="scenario-builder">Scenario builder</h2>
-                    <form onSubmit={handleScenarioSubmit}>
-                      <div className="form-grid">
-                        <label>
-                          <span>Scenario name</span>
-                          <input
-                            name="name"
-                            value={scenarioForm.name}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                name: event.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Engine</span>
-                          <select
-                            name="engine"
-                            value={scenarioForm.engine}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                engine: event.target.value,
-                              })
-                            }
-                          >
-                            <option value="pypsa">PyPSA</option>
-                            <option value="pandapower">pandapower</option>
-                            <option value="pysam">NREL PySAM</option>
-                            <option value="pvlib">pvlib</option>
-                            <option value="osemosys">OSeMOSYS</option>
-                          </select>
-                        </label>
-                        <label className="full-width">
-                          <span>Objective</span>
-                          <textarea
-                            name="objective"
-                            value={scenarioForm.objective}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                objective: event.target.value,
-                              })
-                            }
-                            rows={3}
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Horizon</span>
-                          <input
-                            name="horizon"
-                            value={scenarioForm.horizon}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                horizon: event.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Annual demand MWh</span>
-                          <input
-                            name="annual_demand_mwh"
-                            type="number"
-                            min="0"
-                            value={scenarioForm.annual_demand_mwh}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                annual_demand_mwh: event.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Peak load MW</span>
-                          <input
-                            name="peak_load_mw"
-                            type="number"
-                            min="0"
-                            value={scenarioForm.peak_load_mw}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                peak_load_mw: event.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Renewable target %</span>
-                          <input
-                            name="renewable_share_target"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={scenarioForm.renewable_share_target}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                renewable_share_target: event.target.value,
-                              })
-                            }
-                            required
-                          />
-                        </label>
-                        <label>
-                          <span>Storage duration hours</span>
-                          <input
-                            name="storage_duration_hours"
-                            type="number"
-                            min="0"
-                            value={scenarioForm.storage_duration_hours}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                storage_duration_hours: event.target.value,
-                              })
-                            }
-                          />
-                        </label>
-                        <label>
-                          <span>Carbon price GBP/tCO2e</span>
-                          <input
-                            name="carbon_price"
-                            type="number"
-                            min="0"
-                            value={scenarioForm.carbon_price}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                carbon_price: event.target.value,
-                              })
-                            }
-                          />
-                        </label>
-                        <label>
-                          <span>Grid import limit MW</span>
-                          <input
-                            name="grid_import_limit_mw"
-                            type="number"
-                            min="0"
-                            value={scenarioForm.grid_import_limit_mw}
-                            onChange={(event) =>
-                              setScenarioForm({
-                                ...scenarioForm,
-                                grid_import_limit_mw: event.target.value,
-                              })
-                            }
-                          />
-                        </label>
-                      </div>
-                      <div className="form-actions">
-                        <button type="submit" disabled={isSubmitting}>
-                          {isSubmitting
-                            ? 'Submitting'
-                            : 'Create and queue simulation'}
-                        </button>
-                        {submissionStatus ? (
-                          <span className="status-message">{submissionStatus}</span>
-                        ) : null}
-                      </div>
-                    </form>
-                  </section>
-
                   <div className="section-heading">
                     <h2>Scenarios</h2>
+                    <Link
+                      to={
+                        selectedProjectId
+                          ? `/projects/${selectedProjectId}/scenarios/new`
+                          : '/projects'
+                      }
+                    >
+                      Create scenario
+                    </Link>
                   </div>
                   <div className="table-wrap">
                     <table>
@@ -830,13 +614,11 @@ export function WorkspacePage() {
                         {(projectDetail.scenarios ?? []).map((scenario) => (
                           <tr key={scenario.id}>
                             <th scope="row">
-                              <button
-                                className="link-button"
-                                type="button"
-                                onClick={() => setSelectedScenarioId(scenario.id)}
+                              <Link
+                                to={`/projects/${projectDetail.id}/scenarios/${scenario.id}`}
                               >
                                 {scenario.name}
-                              </button>
+                              </Link>
                             </th>
                             <td>{scenario.engine}</td>
                             <td>{scenario.horizon}</td>

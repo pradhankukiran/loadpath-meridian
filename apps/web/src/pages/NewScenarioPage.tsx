@@ -20,6 +20,7 @@ export function NewScenarioPage() {
   const navigate = useNavigate()
   const [project, setProject] = useState<Project | null>(null)
   const [scenarioForm, setScenarioForm] = useState(defaultScenarioForm)
+  const [loadStatus, setLoadStatus] = useState('Loading project')
   const [submissionStatus, setSubmissionStatus] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -30,11 +31,18 @@ export function NewScenarioPage() {
 
     let isMounted = true
 
-    getProject(projectId).then((data) => {
-      if (isMounted) {
-        setProject(data)
-      }
-    })
+    getProject(projectId)
+      .then((data) => {
+        if (isMounted) {
+          setProject(data)
+          setLoadStatus('')
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoadStatus('Could not load project')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -80,7 +88,7 @@ export function NewScenarioPage() {
         assumptions: scenario.assumptions,
       })
 
-      navigate(`/projects/${projectId}/workspace`)
+      navigate(`/projects/${projectId}/scenarios/${scenario.id}`)
     } catch {
       setSubmissionStatus('Could not create scenario or queue simulation')
     } finally {
@@ -94,8 +102,8 @@ export function NewScenarioPage() {
         <span className="caption">Scenario</span>
         <h1>Create scenario</h1>
         <p>
-          Add a model run to {project?.name ?? 'this project'} and queue it for
-          execution.
+          {loadStatus ||
+            `Add a model run to ${project?.name ?? 'this project'} and queue it for execution.`}
         </p>
         <div className="actions">
           <Link to={`/projects/${projectId}`}>Back to project</Link>
@@ -265,7 +273,7 @@ export function NewScenarioPage() {
             </label>
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={isSubmitting}>
+            <button type="submit" disabled={isSubmitting || Boolean(loadStatus)}>
               {isSubmitting ? 'Submitting' : 'Create and queue simulation'}
             </button>
             {submissionStatus ? (

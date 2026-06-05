@@ -6,6 +6,7 @@ import { NewScenarioPage } from './pages/NewScenarioPage'
 import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { ReportsPage } from './pages/ReportsPage'
+import { ScenarioDetailPage } from './pages/ScenarioDetailPage'
 import { SimulationsPage } from './pages/SimulationsPage'
 import { WorkspacePage } from './pages/WorkspacePage'
 import { OperationsPage } from './pages/OperationsPage'
@@ -48,6 +49,10 @@ function App() {
           <Route
             path="/projects/:projectId/scenarios/new"
             element={<NewScenarioPage />}
+          />
+          <Route
+            path="/projects/:projectId/scenarios/:scenarioId"
+            element={<ScenarioDetailPage />}
           />
           <Route path="/projects/:projectId/reports" element={<ReportsPage />} />
           <Route path="/simulations" element={<SimulationsPage />} />

@@ -4,15 +4,23 @@ import { formatDateTime } from '../lib/format'
 
 export function SimulationsPage() {
   const [jobs, setJobs] = useState<SimulationJob[]>([])
+  const [loadStatus, setLoadStatus] = useState('Loading simulations')
 
   useEffect(() => {
     let isMounted = true
 
-    getRecentSimulationJobs().then((data) => {
-      if (isMounted) {
-        setJobs(data)
-      }
-    })
+    getRecentSimulationJobs()
+      .then((data) => {
+        if (isMounted) {
+          setJobs(data)
+          setLoadStatus('')
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoadStatus('Could not load simulations')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -71,7 +79,11 @@ export function SimulationsPage() {
             </tr>
           </thead>
           <tbody>
-            {jobs.length ? (
+            {loadStatus ? (
+              <tr>
+                <td colSpan={8}>{loadStatus}</td>
+              </tr>
+            ) : jobs.length ? (
               jobs.map((job) => (
                 <tr key={job.id}>
                   <th scope="row">{job.id}</th>

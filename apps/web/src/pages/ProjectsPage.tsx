@@ -4,15 +4,23 @@ import { getProjects, type Project } from '../api'
 
 export function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
+  const [loadStatus, setLoadStatus] = useState('Loading projects')
 
   useEffect(() => {
     let isMounted = true
 
-    getProjects().then((data) => {
-      if (isMounted) {
-        setProjects(data)
-      }
-    })
+    getProjects()
+      .then((data) => {
+        if (isMounted) {
+          setProjects(data)
+          setLoadStatus('')
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setLoadStatus('Could not load projects')
+        }
+      })
 
     return () => {
       isMounted = false
@@ -46,22 +54,28 @@ export function ProjectsPage() {
             </tr>
           </thead>
           <tbody>
-            {projects.map((project) => (
-              <tr key={project.id}>
-                <th scope="row">
-                  <Link to={`/projects/${project.id}`}>{project.name}</Link>
-                </th>
-                <td>{project.owner}</td>
-                <td>{project.region}</td>
-                <td>{project.grid_region}</td>
-                <td>{project.scenarios_count ?? 0}</td>
-                <td>
-                  <span className={`tag tag-${project.status}`}>
-                    {project.status}
-                  </span>
-                </td>
+            {loadStatus ? (
+              <tr>
+                <td colSpan={6}>{loadStatus}</td>
               </tr>
-            ))}
+            ) : (
+              projects.map((project) => (
+                <tr key={project.id}>
+                  <th scope="row">
+                    <Link to={`/projects/${project.id}`}>{project.name}</Link>
+                  </th>
+                  <td>{project.owner}</td>
+                  <td>{project.region}</td>
+                  <td>{project.grid_region}</td>
+                  <td>{project.scenarios_count ?? 0}</td>
+                  <td>
+                    <span className={`tag tag-${project.status}`}>
+                      {project.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
