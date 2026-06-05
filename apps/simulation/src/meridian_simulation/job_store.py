@@ -13,6 +13,7 @@ from meridian_simulation.database import (
     mark_job_failed,
     mark_job_running,
     project_result_records,
+    scenario_result_history_records,
 )
 from meridian_simulation.engine_runner import run_energy_system_simulation
 
@@ -27,6 +28,16 @@ def latest_result(project_id: str, scenario_id: str, settings: Settings | None =
     settings = settings or Settings.from_env()
     initialize_database(settings)
     return latest_result_record(settings, project_id, scenario_id)
+
+
+def result_history(
+    project_id: str,
+    scenario_id: str,
+    settings: Settings | None = None,
+) -> list[dict]:
+    settings = settings or Settings.from_env()
+    initialize_database(settings)
+    return scenario_result_history_records(settings, project_id, scenario_id)
 
 
 def project_results(project_id: str, settings: Settings | None = None) -> list[dict]:

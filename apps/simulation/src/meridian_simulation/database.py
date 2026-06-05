@@ -162,6 +162,27 @@ def latest_result_record(settings: Settings, project_id: str, scenario_id: str) 
     return json.loads(row["result_json"])
 
 
+def scenario_result_history_records(
+    settings: Settings,
+    project_id: str,
+    scenario_id: str,
+    limit: int = 10,
+) -> list[dict]:
+    engine = database_engine(settings.database_url)
+    with engine.connect() as connection:
+        rows = connection.execute(
+            select(simulation_jobs)
+            .where(simulation_jobs.c.project_id == project_id)
+            .where(simulation_jobs.c.scenario_id == scenario_id)
+            .where(simulation_jobs.c.status == "complete")
+            .where(simulation_jobs.c.result_json.is_not(None))
+            .order_by(simulation_jobs.c.completed_at.desc())
+            .limit(limit)
+        ).mappings()
+
+        return [result_history_from_row(row) for row in rows]
+
+
 def project_result_records(settings: Settings, project_id: str) -> list[dict]:
     engine = database_engine(settings.database_url)
     with engine.connect() as connection:
@@ -340,6 +361,36 @@ def job_from_row(row: dict) -> dict:
         job["error_message"] = row["error_message"]
 
     return job
+
+
+def result_history_from_row(row: dict) -> dict:
+    result = json.loads(row["result_json"] or "{}")
+    engine_adapter = result.get("engine_adapter") or {}
+
+    return {
+        "job_id": row["id"],
+        "project_id": row["project_id"],
+        "scenario_id": row["scenario_id"],
+        "engine": row["engine"],
+        "model": row["model"],
+        "status": row["status"],
+        "submitted_at": format_datetime(row["submitted_at"]),
+        "completed_at": format_datetime(row["completed_at"]),
+        "total_cost_million": result.get("total_cost_million"),
+        "renewable_share_percent": result.get("renewable_share_percent"),
+        "emissions_tonnes_co2e": result.get("emissions_tonnes_co2e"),
+        "curtailment_mwh": result.get("curtailment_mwh"),
+        "reliability_margin_percent": result.get("reliability_margin_percent"),
+        "engine_adapter_status": engine_adapter.get("status"),
+        "solver": engine_adapter.get("solver"),
+        "artifact_count": result_artifact_count(engine_adapter),
+    }
+
+
+def result_artifact_count(engine_adapter: dict) -> int:
+    model = engine_adapter.get("model") or {}
+    artifacts = model.get("artifacts")
+    return len(artifacts) if isinstance(artifacts, list) else 0
 
 
 def parse_datetime(value: str) -> datetime:

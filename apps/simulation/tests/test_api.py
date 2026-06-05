@@ -113,6 +113,16 @@ def test_simulation_submission_returns_queued_job():
     assert result_response.json["data"]["generation_mix"][0]["label"] == "Solar"
     assert result_response.json["data"]["cost_breakdown"][0]["label"] == "Generation"
 
+    history_response = client.get("/api/projects/prj_nw_grid/scenarios/scn_base/results")
+    assert history_response.status_code == 200
+    assert history_response.json["data"][0]["job_id"] == response.json["id"]
+    assert history_response.json["data"][0]["engine_adapter_status"] in {
+        "executed",
+        "model_built",
+        "unavailable",
+    }
+    assert history_response.json["data"][0]["total_cost_million"] is not None
+
 
 def test_recent_simulations_endpoint_returns_queue_items():
     client = create_app().test_client()
@@ -207,6 +217,19 @@ def test_latest_result_endpoint_returns_summary():
     assert response.json["data"]["engine"] == "pypsa"
     assert response.json["data"]["renewable_share_percent"] == 70.4
     assert "generation_mix" in response.json["data"]
+
+
+def test_result_history_endpoint_returns_completed_runs():
+    client = create_app().test_client()
+
+    response = client.get("/api/projects/prj_nw_grid/scenarios/scn_nw_base/results")
+
+    assert response.status_code == 200
+    assert response.json["data"][0]["job_id"] == "sim_seed_nw_base"
+    assert response.json["data"][0]["engine"] == "pypsa"
+    assert response.json["data"][0]["status"] == "complete"
+    assert response.json["data"][0]["renewable_share_percent"] == 70.4
+    assert response.json["data"][0]["completed_at"] == "2026-06-04T07:20:00+00:00"
 
 
 def test_latest_result_endpoint_returns_null_for_missing_result():

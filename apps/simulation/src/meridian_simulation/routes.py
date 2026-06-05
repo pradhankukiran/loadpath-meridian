@@ -6,7 +6,12 @@ from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
 from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
-from meridian_simulation.job_store import enqueue_job, latest_result as get_latest_result, list_recent_jobs
+from meridian_simulation.job_store import (
+    enqueue_job,
+    latest_result as get_latest_result,
+    list_recent_jobs,
+    result_history as get_result_history,
+)
 from meridian_simulation.operations import service_status
 
 api = Blueprint("api", __name__)
@@ -119,6 +124,17 @@ def latest_result(project_id: str, scenario_id: str):
         return {"data": None}
 
     return {"data": result}
+
+
+@api.get("/projects/<project_id>/scenarios/<scenario_id>/results")
+def scenario_results(project_id: str, scenario_id: str):
+    return {
+        "data": get_result_history(
+            project_id,
+            scenario_id,
+            current_app.config["MERIDIAN_SETTINGS"],
+        )
+    }
 
 
 @api.get("/projects/<project_id>/comparisons")
