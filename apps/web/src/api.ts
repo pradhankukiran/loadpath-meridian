@@ -175,6 +175,34 @@ export type ScenarioComparison = {
   }
 }
 
+export type ServiceOperationsStatus = {
+  service: string
+  status: string
+  environment: string
+  checks: Record<string, string>
+  frontend_url?: string
+  frontend_origins?: string[]
+  request_id_header?: string
+  logging?: {
+    channel: string
+    level: string
+  }
+  redis?: {
+    status: string
+    latency_ms: number | null
+  }
+  worker?: {
+    status: string
+    active_workers: number
+    mode: string
+  }
+  queue?: {
+    mode: string
+    counts: Record<string, number>
+  }
+  queue_mode?: string
+}
+
 export type CreateProjectPayload = {
   name: string
   owner: string
@@ -417,7 +445,11 @@ const fallbackConnectors: DataConnector[] = [
 
 async function getJson<T>(url: string, fallback: T): Promise<T> {
   try {
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: {
+        'X-Request-ID': createRequestId(),
+      },
+    })
 
     if (!response.ok) {
       return fallback
@@ -437,6 +469,7 @@ async function postJson<TResponse, TPayload>(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'X-Request-ID': createRequestId(),
     },
     body: JSON.stringify(payload),
   })
@@ -446,6 +479,14 @@ async function postJson<TResponse, TPayload>(
   }
 
   return (await response.json()) as TResponse
+}
+
+function createRequestId() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+
+  return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -605,6 +646,50 @@ export async function getScenarioResultHistory(
         projectId === 'prj_nw_grid' && scenarioId === 'scn_nw_base'
           ? fallbackResultHistory
           : [],
+    },
+  )
+
+  return response.data
+}
+
+export async function getPlatformOperationsStatus(): Promise<ServiceOperationsStatus> {
+  const response = await getJson<ApiEnvelope<ServiceOperationsStatus>>(
+    `${platformApiUrl}/operations/status`,
+    {
+      data: {
+        service: 'loadpath-meridian-platform',
+        status: 'degraded',
+        environment: 'unknown',
+        checks: {
+          database: 'unavailable',
+        },
+        request_id_header: 'X-Request-ID',
+      },
+    },
+  )
+
+  return response.data
+}
+
+export async function getSimulationOperationsStatus(): Promise<ServiceOperationsStatus> {
+  const response = await getJson<ApiEnvelope<ServiceOperationsStatus>>(
+    `${simulationApiUrl}/operations/status`,
+    {
+      data: {
+        service: 'loadpath-meridian-simulation',
+        status: 'degraded',
+        environment: 'unknown',
+        checks: {
+          database: 'unavailable',
+          redis: 'unavailable',
+          worker: 'unavailable',
+        },
+        queue: {
+          mode: 'unknown',
+          counts: {},
+        },
+        request_id_header: 'X-Request-ID',
+      },
     },
   )
 

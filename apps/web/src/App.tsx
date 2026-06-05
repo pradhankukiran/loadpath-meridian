@@ -5,6 +5,7 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { SimulationsPage } from './pages/SimulationsPage'
 import { WorkspacePage } from './pages/WorkspacePage'
+import { OperationsPage } from './pages/OperationsPage'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <NavLink to="/simulations">Simulations</NavLink>
             <NavLink to="/data-sources">Data sources</NavLink>
             <NavLink to="/reports">Reports</NavLink>
+            <NavLink to="/operations">Operations</NavLink>
           </nav>
         </div>
       </header>
@@ -37,6 +39,7 @@ function App() {
           <Route path="/simulations" element={<SimulationsPage />} />
           <Route path="/data-sources" element={<DataSourcesPage />} />
           <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/operations" element={<OperationsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

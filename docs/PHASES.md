@@ -129,6 +129,16 @@
 - Upgrade the simulation operations page with queue totals, lifecycle timestamps, progress bars, and worker errors
 - Keep the dashboard backed by Flask simulation storage rather than static UI-only summaries
 
+## Phase 15: Monitoring and Logging
+
+- Add `X-Request-ID` propagation across React, Laravel, Flask, and API responses
+- Emit structured JSON logs for Flask HTTP requests and Celery simulation tasks
+- Log failed simulation jobs with persisted error summaries
+- Expand simulation operations status with Redis latency, worker health, queue mode, and persisted job counts
+- Add Laravel request logging and operations metadata for logging channel and request ID support
+- Add a frontend Operations page for platform, simulation, queue, worker, and integration health
+- Document deployed-service log correlation and incident checks
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
@@ -137,4 +147,4 @@ demo or MVP:
 - Data source integrations
 - Reports and exports
 - Exportable report packages
-- Production telemetry and usage metering
+- Usage metering

@@ -111,8 +111,21 @@ Public health probes:
 
 Operational checks:
 
-- `GET /api/operations/status` on platform reports database, queue, cache, environment, and frontend URL.
-- `GET /api/operations/status` on simulation reports database, Redis, queue mode, Modal, NREL, EIA, environment, and allowed frontend origins.
+- `GET /api/operations/status` on platform reports database, queue, cache, environment, frontend URL, logging channel, and request ID support.
+- `GET /api/operations/status` on simulation reports database, Redis latency, Celery worker health, queue mode, persisted job counts, Modal, NREL, EIA, environment, and allowed frontend origins.
+- `/operations` in the React app renders both operations contracts and refreshes them every 30 seconds.
+
+All browser API calls send `X-Request-ID`. Laravel and Flask echo the same
+header in responses, and both services include the request ID in service logs.
+When investigating a failed action, copy the response `X-Request-ID` from the
+browser network panel and search Railway logs for that value.
+
+Simulation API and worker logs are JSON-formatted. Useful log events:
+
+- `http_request_completed`: Flask request completion with method, path, status, and duration
+- `simulation_task_started`: Celery worker picked up a simulation job
+- `simulation_task_finished`: Celery worker finished a simulation job
+- `simulation_job_failed`: simulation execution failed and the job row was marked failed
 
 ## Deployment Verification
 
@@ -123,10 +136,12 @@ After deployment:
 3. Open `/reports` and confirm scenario comparison loads from the simulation API.
 4. Open both `/api/health` endpoints.
 5. Open both `/api/operations/status` endpoints.
-6. Submit a scenario run and confirm it first appears as queued or running.
-7. Confirm the worker completes the job and latest results render.
-8. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
-9. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
+6. Open `/operations` and confirm platform and simulation checks are `ok`.
+7. Confirm the simulation operations payload shows `queue.mode=celery` and at least one active worker.
+8. Submit a scenario run and confirm it first appears as queued or running.
+9. Confirm the worker completes the job and latest results render.
+10. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
+11. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
 
 ## Environment Templates
 

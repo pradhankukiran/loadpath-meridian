@@ -263,14 +263,18 @@ td small {
 
 .tag-active,
 .tag-complete,
-.tag-executed {
+.tag-executed,
+.tag-ok,
+.tag-not_required,
+.tag-configured {
   background: #cce2d8;
   color: #005a30;
 }
 
 .tag-review,
 .tag-running,
-.tag-ready {
+.tag-ready,
+.tag-degraded {
   background: #d2e2f1;
   color: #144e81;
 }
@@ -292,7 +296,8 @@ td small {
 }
 
 .tag-unavailable,
-.tag-failed {
+.tag-failed,
+.tag-not_configured {
   background: #f6d7d2;
   color: #942514;
 }
@@ -510,6 +515,92 @@ td small {
 
 .comparison-grid {
   margin-top: 36px;
+}
+
+.operations-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 36px;
+}
+
+.operations-service {
+  border-top: 2px solid #0b0c0c;
+  padding-top: 16px;
+}
+
+.operations-service h3 {
+  color: #0b0c0c;
+  font-size: 19px;
+  margin: 24px 0 10px;
+}
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #b1b4b6;
+  border: 1px solid #b1b4b6;
+}
+
+.check-grid div {
+  background: #ffffff;
+  padding: 12px;
+}
+
+.check-grid span,
+.check-grid strong {
+  display: block;
+}
+
+.check-grid span {
+  color: #505a5f;
+  font-size: 15px;
+  text-transform: capitalize;
+}
+
+.check-grid strong {
+  margin-top: 4px;
+  color: #0b0c0c;
+  font-size: 18px;
+}
+
+.check-ok {
+  color: #005a30 !important;
+}
+
+.check-degraded {
+  color: #144e81 !important;
+}
+
+.check-failed {
+  color: #942514 !important;
+}
+
+.queue-counts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: #b1b4b6;
+  border: 1px solid #b1b4b6;
+}
+
+.queue-counts div {
+  background: #f3f2f1;
+  padding: 12px;
+}
+
+.queue-counts dt {
+  color: #505a5f;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.queue-counts dd {
+  margin: 4px 0 0;
+  color: #0b0c0c;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .connector-page-item,
@@ -901,12 +992,14 @@ td small {
   .scenario-grid,
   .summary-list div,
   .connector-page-grid,
+  .operations-grid,
   .report-grid,
   .report-summary-grid {
     display: block;
   }
 
   .connector-page-item,
+  .operations-service,
   .report-grid article,
   .report-summary-grid div {
     margin-bottom: 28px;
@@ -960,7 +1053,9 @@ td small {
 
   .connector-list,
   .dataset-summary div,
-  .input-summary div {
+  .input-summary div,
+  .check-grid,
+  .queue-counts {
     display: block;
   }
 }
