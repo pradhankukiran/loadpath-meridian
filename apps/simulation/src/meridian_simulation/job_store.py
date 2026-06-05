@@ -38,13 +38,16 @@ def project_results(project_id: str, settings: Settings | None = None) -> list[d
 def enqueue_job(payload: dict, settings: Settings | None = None) -> dict:
     settings = settings or Settings.from_env()
     initialize_database(settings)
+    job_id = f"sim_{uuid4().hex[:12]}"
+    payload["job_id"] = job_id
+    payload["artifact_dir"] = settings.artifact_dir
     dataset = latest_dataset(payload["project_id"], payload["scenario_id"])
     if dataset:
         payload["input_dataset"] = dataset
         payload["input_data_summary"] = dataset["summary"]
 
     job = {
-        "id": f"sim_{uuid4().hex[:12]}",
+        "id": job_id,
         "project_id": payload["project_id"],
         "scenario_id": payload["scenario_id"],
         "engine": payload["engine"],

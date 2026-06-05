@@ -9,6 +9,7 @@ class Settings:
     nrel_api_key: str | None
     eia_api_key: str | None
     database_url: str = "sqlite:///storage/simulation.db"
+    artifact_dir: str = "storage/artifacts"
     sync_jobs: bool = True
     app_env: str = "local"
     frontend_origins: tuple[str, ...] = ("http://localhost:5173",)
@@ -27,6 +28,7 @@ class Settings:
         return cls(
             redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
             database_url=os.getenv("SIMULATION_DATABASE_URL", "sqlite:///storage/simulation.db"),
+            artifact_dir=os.getenv("SIMULATION_ARTIFACT_DIR", "storage/artifacts"),
             sync_jobs=os.getenv("SIMULATION_SYNC_JOBS", "true").lower() in {"1", "true", "yes"},
             modal_llm_endpoint=os.getenv("MODAL_LLM_ENDPOINT"),
             nrel_api_key=os.getenv("NREL_API_KEY"),

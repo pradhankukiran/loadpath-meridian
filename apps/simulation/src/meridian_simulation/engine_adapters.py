@@ -6,6 +6,8 @@ from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
+from meridian_simulation.osemosys_model import run_osemosys_capacity_expansion
+
 
 @dataclass(frozen=True)
 class AdapterOutcome:
@@ -413,18 +415,30 @@ def run_osemosys_adapter(payload: dict, baseline_result: dict) -> AdapterOutcome
     if otoole is None:
         return AdapterOutcome(metadata=unavailable_metadata("osemosys", "Install OSeMOSYS tooling to validate long-term planning datasets."))
 
+    pyomo = optional_module("pyomo.environ")
+    if pyomo is None:
+        return AdapterOutcome(metadata=unavailable_metadata("osemosys", "Install Pyomo to run OSeMOSYS optimisation models."))
+
+    result = run_osemosys_capacity_expansion(payload, baseline_result, pyomo)
+    solution = result["solution"]
+
     return AdapterOutcome(
         metadata={
             "engine": "osemosys",
-            "status": "model_built",
+            "status": "executed",
             "library": "otoole",
             "library_version": package_version("otoole"),
-            "message": "OSeMOSYS adapter is ready for dataset validation; optimisation requires a solver-backed model file.",
+            "solver": solution["solver"],
+            "message": "OSeMOSYS model artifacts were generated and the capacity expansion problem solved.",
             "model": {
+                "model": "OSeMOSYS-lite capacity expansion",
                 "demand_mwh": payload.get("annual_demand_mwh"),
                 "target_renewable_share": payload.get("renewable_share_target"),
+                "termination_condition": solution["termination_condition"],
+                "artifacts": result["artifacts"],
             },
-        }
+        },
+        updates=result["updates"],
     )
 
 
