@@ -70,6 +70,7 @@ Required environment variables:
 - `FRONTEND_URL`: public Vercel frontend URL
 - `REDIS_URL`: Railway Redis URL
 - `SIMULATION_DATABASE_URL`: SQLAlchemy database URL for simulation jobs and results
+- `SIMULATION_ARTIFACT_DIR`: writable directory for generated model/data/solution artifacts
 - `SIMULATION_SYNC_JOBS`: `false` for Celery-backed async execution
 - `MODAL_LLM_ENDPOINT`: Modal-hosted LLM inference endpoint
 - `NREL_API_KEY`: optional NREL key for PVWatts
@@ -131,6 +132,7 @@ After deployment:
 
 - `MODAL_LLM_ENDPOINT`: Modal-hosted LLM inference endpoint
 - `SIMULATION_DATABASE_URL`: simulation job/result database URL
+- `SIMULATION_ARTIFACT_DIR`: generated simulation artifact directory
 - `SIMULATION_SYNC_JOBS`: `false` for Docker/Railway async execution, `true` for direct local runs
 - `NREL_API_KEY`: NREL Developer Network key
 - `EIA_API_KEY`: EIA Open Data key

@@ -45,7 +45,7 @@ calls the selected engine adapter:
 - `pandapower`: builds and runs a load-flow network.
 - `pysam`: converts imported hourly weather into PVWatts resource data and executes the model.
 - `pvlib`: runs a clear-sky irradiance calculation.
-- `osemosys`: validates the OSeMOSYS tooling boundary when installed.
+- `osemosys`: generates model/data/solution artifacts and solves a capacity expansion model with Pyomo and HiGHS.
 
 Results include `engine_adapter` metadata so the UI can show whether the real
 library executed, only built a model, failed, or is unavailable in the runtime.

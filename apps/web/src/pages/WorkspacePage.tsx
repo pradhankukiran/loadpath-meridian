@@ -64,6 +64,16 @@ function resourceValue(value: number | string) {
   return value
 }
 
+function artifactCount(
+  model?: Record<
+    string,
+    number | string | null | Array<Record<string, number | string>>
+  >,
+) {
+  const artifacts = model?.artifacts
+  return Array.isArray(artifacts) ? artifacts.length : 0
+}
+
 export function WorkspacePage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
@@ -880,6 +890,14 @@ export function WorkspacePage() {
                               <div>
                                 <dt>Solver</dt>
                                 <dd>{latestResult.engine_adapter.solver}</dd>
+                              </div>
+                            ) : null}
+                            {artifactCount(latestResult.engine_adapter.model) > 0 ? (
+                              <div>
+                                <dt>Artifacts</dt>
+                                <dd>
+                                  {artifactCount(latestResult.engine_adapter.model)}
+                                </dd>
                               </div>
                             ) : null}
                           </dl>

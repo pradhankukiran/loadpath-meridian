@@ -46,7 +46,10 @@ export type SimulationResult = {
     library_version?: string | null
     solver?: string
     message: string
-    model?: Record<string, number | string | null>
+    model?: Record<
+      string,
+      number | string | null | Array<Record<string, number | string>>
+    >
   }
   engine_resource_summary?: Record<string, number | string>
   total_cost_million: number

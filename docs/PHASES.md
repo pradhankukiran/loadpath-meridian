@@ -111,6 +111,15 @@
 - Annualize PySAM generation outputs into the normalized result contract
 - Surface PySAM resource metadata in the workspace result panel
 
+## Phase 13: OSeMOSYS Solver Execution
+
+- Generate OSeMOSYS-lite capacity expansion input data from scenario assumptions
+- Build a solver-backed Pyomo optimization model for capacity and generation mix
+- Solve the model with HiGHS when energy extras are installed
+- Write data, LP model, solution, and summary artifacts per simulation job
+- Normalize capacity expansion outputs into costs, emissions, renewable share, and generation mix
+- Surface solver and artifact metadata in the workspace result panel
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
