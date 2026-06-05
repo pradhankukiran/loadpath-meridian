@@ -139,12 +139,18 @@
 - Add a frontend Operations page for platform, simulation, queue, worker, and integration health
 - Document deployed-service log correlation and incident checks
 
+## Phase 16: Exportable Report Packages
+
+- Add a Flask report-package builder backed by persisted scenario comparison results
+- Export ZIP packages with manifest, comparison JSON, comparison CSV, executive Markdown summary, and scenario result JSON files
+- Add a report-package download endpoint for each project
+- Add a Reports page export action with request ID propagation and download status
+- Cover the ZIP contract with backend tests
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
 - Data source integrations
-- Reports and exports
-- Exportable report packages
 - Usage metering

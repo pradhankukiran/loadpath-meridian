@@ -450,6 +450,13 @@ td small {
   border-bottom: 1px solid #b1b4b6;
 }
 
+.report-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 20px 28px;
+}
+
 .report-controls label,
 .report-controls span {
   display: block;
@@ -470,6 +477,14 @@ td small {
   color: #0b0c0c;
   font: inherit;
   padding: 8px;
+}
+
+.report-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 1px;
 }
 
 .report-summary-grid {

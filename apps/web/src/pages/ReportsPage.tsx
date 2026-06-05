@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  downloadProjectReportPackage,
   getProjects,
   getScenarioComparison,
   type Project,
@@ -11,6 +12,8 @@ export function ReportsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [comparison, setComparison] = useState<ScenarioComparison | null>(null)
+  const [exportStatus, setExportStatus] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     let isMounted = true
@@ -51,6 +54,32 @@ export function ReportsPage() {
     return projects.find((project) => project.id === selectedProjectId)
   }, [projects, selectedProjectId])
 
+  async function handleExportPackage() {
+    if (!selectedProjectId) {
+      return
+    }
+
+    setIsExporting(true)
+    setExportStatus('Preparing report package')
+
+    try {
+      const packageBlob = await downloadProjectReportPackage(selectedProjectId)
+      const objectUrl = URL.createObjectURL(packageBlob)
+      const link = document.createElement('a')
+      link.href = objectUrl
+      link.download = `loadpath-meridian-${selectedProjectId}-report-package.zip`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(objectUrl)
+      setExportStatus('Report package downloaded')
+    } catch {
+      setExportStatus('Could not export report package')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <>
       <section className="page-heading">
@@ -63,19 +92,33 @@ export function ReportsPage() {
       </section>
 
       <section className="report-controls" aria-label="Report controls">
-        <label>
-          <span>Project</span>
-          <select
-            value={selectedProjectId}
-            onChange={(event) => setSelectedProjectId(event.target.value)}
-          >
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="report-control-row">
+          <label>
+            <span>Project</span>
+            <select
+              value={selectedProjectId}
+              onChange={(event) => setSelectedProjectId(event.target.value)}
+            >
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="report-export-actions">
+            <button
+              type="button"
+              onClick={handleExportPackage}
+              disabled={!selectedProjectId || isExporting}
+            >
+              {isExporting ? 'Exporting' : 'Export report package'}
+            </button>
+            {exportStatus ? (
+              <span className="status-message">{exportStatus}</span>
+            ) : null}
+          </div>
+        </div>
       </section>
 
       {comparison ? (

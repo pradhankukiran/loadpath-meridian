@@ -481,6 +481,20 @@ async function postJson<TResponse, TPayload>(
   return (await response.json()) as TResponse
 }
 
+async function getBlob(url: string): Promise<Blob> {
+  const response = await fetch(url, {
+    headers: {
+      'X-Request-ID': createRequestId(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`)
+  }
+
+  return await response.blob()
+}
+
 function createRequestId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()
@@ -607,6 +621,14 @@ export async function getScenarioComparison(
   )
 
   return response.data
+}
+
+export async function downloadProjectReportPackage(
+  projectId: string,
+): Promise<Blob> {
+  return await getBlob(
+    `${simulationApiUrl}/projects/${projectId}/reports/package`,
+  )
 }
 
 export async function submitSimulation(

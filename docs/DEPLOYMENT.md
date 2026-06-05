@@ -134,14 +134,15 @@ After deployment:
 1. Open the Vercel frontend.
 2. Confirm project data loads from the platform API.
 3. Open `/reports` and confirm scenario comparison loads from the simulation API.
-4. Open both `/api/health` endpoints.
-5. Open both `/api/operations/status` endpoints.
-6. Open `/operations` and confirm platform and simulation checks are `ok`.
-7. Confirm the simulation operations payload shows `queue.mode=celery` and at least one active worker.
-8. Submit a scenario run and confirm it first appears as queued or running.
-9. Confirm the worker completes the job and latest results render.
-10. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
-11. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
+4. Export a report package and confirm the ZIP contains `manifest.json`, `comparison.csv`, `comparison.json`, `executive-summary.md`, and scenario JSON files.
+5. Open both `/api/health` endpoints.
+6. Open both `/api/operations/status` endpoints.
+7. Open `/operations` and confirm platform and simulation checks are `ok`.
+8. Confirm the simulation operations payload shows `queue.mode=celery` and at least one active worker.
+9. Submit a scenario run and confirm it first appears as queued or running.
+10. Confirm the worker completes the job and latest results render.
+11. Ask the AI assistant a scenario question and confirm the response source is `modal` when `MODAL_LLM_ENDPOINT` is configured.
+12. Confirm the latest result's engine execution panel shows `executed` or `model built` when energy extras are installed.
 
 ## Environment Templates
 
