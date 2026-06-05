@@ -50,16 +50,29 @@ def import_open_meteo_weather(payload: dict, http_get=requests.get) -> dict:
             "time_start": first_or_none(hourly.get("time", [])),
             "time_end": last_or_none(hourly.get("time", [])),
         },
-        "sample": [
-            {
-                "time": time,
-                "temperature_2m": temperatures[index],
-                "wind_speed_10m": wind_speeds[index],
-                "shortwave_radiation": radiation[index],
-            }
-            for index, time in enumerate(hourly.get("time", [])[:12])
-        ],
+        "records": hourly_records(hourly, temperatures, wind_speeds, radiation),
+        "sample": hourly_records(hourly, temperatures, wind_speeds, radiation)[:12],
     }
+
+
+def hourly_records(
+    hourly: dict,
+    temperatures: list[float | int],
+    wind_speeds: list[float | int],
+    radiation: list[float | int],
+) -> list[dict]:
+    return [
+        {
+            "time": time,
+            "temperature_2m": temperatures[index],
+            "wind_speed_10m": wind_speeds[index],
+            "shortwave_radiation": radiation[index],
+        }
+        for index, time in enumerate(hourly.get("time", []))
+        if index < len(temperatures)
+        and index < len(wind_speeds)
+        and index < len(radiation)
+    ]
 
 
 def connector_blueprint(connector_id: str) -> dict:

@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from meridian_simulation.config import Settings
-from meridian_simulation.data_store import latest_dataset_summary
+from meridian_simulation.data_store import latest_dataset
 from meridian_simulation.database import (
     create_job_record,
     get_job_payload,
@@ -38,6 +38,11 @@ def project_results(project_id: str, settings: Settings | None = None) -> list[d
 def enqueue_job(payload: dict, settings: Settings | None = None) -> dict:
     settings = settings or Settings.from_env()
     initialize_database(settings)
+    dataset = latest_dataset(payload["project_id"], payload["scenario_id"])
+    if dataset:
+        payload["input_dataset"] = dataset
+        payload["input_data_summary"] = dataset["summary"]
+
     job = {
         "id": f"sim_{uuid4().hex[:12]}",
         "project_id": payload["project_id"],
@@ -78,10 +83,13 @@ def complete_job(job_id: str, settings: Settings | None = None) -> dict:
 
     try:
         mark_job_running(settings, job_id)
-        payload["input_data_summary"] = latest_dataset_summary(
+        dataset = payload.get("input_dataset") or latest_dataset(
             payload["project_id"],
             payload["scenario_id"],
         )
+        if dataset:
+            payload["input_dataset"] = dataset
+            payload["input_data_summary"] = dataset["summary"]
         result = run_energy_system_simulation(payload)
         return mark_job_complete(settings, job_id, result)
     except Exception as exc:

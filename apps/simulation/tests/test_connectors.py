@@ -38,4 +38,6 @@ def test_open_meteo_import_summarises_weather_data():
     assert dataset["summary"]["records"] == 2
     assert dataset["summary"]["temperature_2m_mean_c"] == 21.0
     assert dataset["summary"]["shortwave_radiation_peak_wm2"] == 120.0
+    assert len(dataset["records"]) == 2
+    assert dataset["records"][1]["shortwave_radiation"] == 120.0
     assert dataset["sample"][1]["wind_speed_10m"] == 10.0

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, version
 from typing import Any
@@ -200,15 +201,42 @@ def run_pysam_adapter(payload: dict, baseline_result: dict) -> AdapterOutcome:
     model = pysam.default("PVWattsNone")
     assumptions = payload.get("assumptions", {})
     system_capacity_kw = float(assumptions.get("solar_capacity_mw", payload.get("peak_load_mw", 1) * 0.7)) * 1000
+    resource = build_pysam_resource(payload)
 
     status = "model_built"
-    message = "PySAM PVWatts model was configured; weather resource execution requires a full solar resource file."
+    message = "PySAM PVWatts model was configured; weather resource execution requires imported hourly weather records."
+    updates = None
 
     try:
-        model.SystemDesign.system_capacity = system_capacity_kw
-        model.SystemDesign.dc_ac_ratio = float(assumptions.get("inverter_loading_ratio", 1.2))
+        model.SystemDesign.assign({
+            "system_capacity": system_capacity_kw,
+            "module_type": int(assumptions.get("module_type", 0)),
+            "array_type": int(assumptions.get("array_type", 1)),
+            "tilt": float(assumptions.get("tilt_degrees", assumptions.get("tilt", 30))),
+            "azimuth": float(assumptions.get("azimuth_degrees", assumptions.get("azimuth", 180))),
+            "gcr": float(assumptions.get("ground_coverage_ratio", assumptions.get("gcr", 0.4))),
+            "dc_ac_ratio": float(assumptions.get("inverter_loading_ratio", 1.2)),
+            "inv_eff": float(assumptions.get("inverter_efficiency_percent", 96)),
+            "losses": float(assumptions.get("system_losses_percent", 14)),
+        })
+
+        if resource:
+            model.SolarResource.solar_resource_data = resource
+            model.execute()
+            output = model.Outputs.export()
+            updates = pysam_result_updates(
+                baseline_result=baseline_result,
+                output=output,
+                resource=resource,
+                system_capacity_kw=system_capacity_kw,
+            )
+            status = "executed"
+            message = (
+                "PySAM PVWatts executed with imported hourly weather records "
+                "converted into a solar resource profile."
+            )
     except Exception as exc:
-        message = f"PySAM PVWatts model was created, but design inputs could not be assigned: {exc}"
+        message = f"PySAM PVWatts model was created, but execution did not complete: {exc}"
 
     return AdapterOutcome(
         metadata={
@@ -220,8 +248,10 @@ def run_pysam_adapter(payload: dict, baseline_result: dict) -> AdapterOutcome:
             "model": {
                 "module": "PySAM.Pvwattsv8",
                 "system_capacity_kw": round(system_capacity_kw, 2),
+                "weather_records": len(resource["year"]) if resource else 0,
             },
-        }
+        },
+        updates=updates,
     )
 
 
@@ -264,6 +294,118 @@ def run_pvlib_adapter(payload: dict, baseline_result: dict) -> AdapterOutcome:
         },
         updates=updates,
     )
+
+
+def build_pysam_resource(payload: dict) -> dict | None:
+    dataset = payload.get("input_dataset")
+    if not dataset:
+        return None
+
+    records = dataset.get("records") or dataset.get("sample") or []
+    if not records:
+        return None
+
+    location = dataset.get("location", {})
+    latitude = float(location.get("latitude", payload.get("assumptions", {}).get("latitude", 0)))
+    longitude = float(location.get("longitude", payload.get("assumptions", {}).get("longitude", 0)))
+    timezone = float(payload.get("assumptions", {}).get("timezone", 0))
+    elevation = float(payload.get("assumptions", {}).get("elevation_m", 50))
+
+    resource = {
+        "lat": latitude,
+        "lon": longitude,
+        "tz": timezone,
+        "elev": elevation,
+        "year": [],
+        "month": [],
+        "day": [],
+        "hour": [],
+        "minute": [],
+        "dn": [],
+        "df": [],
+        "tdry": [],
+        "wspd": [],
+    }
+
+    for record in records:
+        timestamp = parse_resource_time(str(record["time"]))
+        ghi = max(0.0, float(record.get("shortwave_radiation", 0)))
+        diffuse = round(ghi * 0.25, 4)
+        direct_normal = round(max(0.0, ghi - diffuse), 4)
+
+        resource["year"].append(timestamp.year)
+        resource["month"].append(timestamp.month)
+        resource["day"].append(timestamp.day)
+        resource["hour"].append(timestamp.hour)
+        resource["minute"].append(timestamp.minute)
+        resource["dn"].append(direct_normal)
+        resource["df"].append(diffuse)
+        resource["tdry"].append(float(record.get("temperature_2m", 20)))
+        resource["wspd"].append(float(record.get("wind_speed_10m", 0)) / 3.6)
+
+    return resource
+
+
+def pysam_result_updates(
+    *,
+    baseline_result: dict,
+    output: dict,
+    resource: dict,
+    system_capacity_kw: float,
+) -> dict:
+    generation_kwh = [max(0.0, float(value)) for value in output.get("gen", [])]
+    record_count = max(len(generation_kwh), 1)
+    period_generation_kwh = sum(generation_kwh)
+    annualized_solar_mwh = period_generation_kwh * (8760 / record_count) / 1000
+    capacity_factor = (
+        annualized_solar_mwh * 1000 / (system_capacity_kw * 8760) * 100
+        if system_capacity_kw > 0
+        else 0
+    )
+
+    generation_mix = replace_generation_mix_value(
+        baseline_result["generation_mix"],
+        "Solar",
+        round(annualized_solar_mwh, 2),
+    )
+    renewable_mwh = sum(
+        item["mwh"]
+        for item in generation_mix
+        if item["label"] in {"Solar", "Wind", "Storage discharge"}
+    )
+    renewable_share = min(
+        99.0,
+        renewable_mwh / max(float(baseline_result.get("total_demand_mwh", 0)) or sum(item["mwh"] for item in generation_mix), 1) * 100,
+    )
+
+    return {
+        "renewable_share_percent": round(renewable_share, 1),
+        "generation_mix": generation_mix,
+        "engine_resource_summary": {
+            "source": "PySAM PVWatts solar resource",
+            "records": record_count,
+            "latitude": resource["lat"],
+            "longitude": resource["lon"],
+            "period_solar_generation_kwh": round(period_generation_kwh, 2),
+            "annualized_solar_generation_mwh": round(annualized_solar_mwh, 2),
+            "capacity_factor_percent": round(capacity_factor, 2),
+            "peak_ac_kw": round(max([float(value) for value in output.get("ac", [])] or [0]) / 1000, 2),
+        },
+    }
+
+
+def replace_generation_mix_value(generation_mix: list[dict], label: str, mwh: float) -> list[dict]:
+    return [
+        {
+            **item,
+            "mwh": mwh if item["label"] == label else item["mwh"],
+        }
+        for item in generation_mix
+    ]
+
+
+def parse_resource_time(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def run_osemosys_adapter(payload: dict, baseline_result: dict) -> AdapterOutcome:

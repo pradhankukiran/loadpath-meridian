@@ -43,7 +43,7 @@ calls the selected engine adapter:
 
 - `pypsa`: builds a PyPSA network and attempts optimisation with the configured solver.
 - `pandapower`: builds and runs a load-flow network.
-- `pysam`: configures an NREL PySAM PVWatts model.
+- `pysam`: converts imported hourly weather into PVWatts resource data and executes the model.
 - `pvlib`: runs a clear-sky irradiance calculation.
 - `osemosys`: validates the OSeMOSYS tooling boundary when installed.
 

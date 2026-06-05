@@ -15,9 +15,18 @@ def list_datasets(project_id: str, scenario_id: str) -> list[dict]:
 
 
 def latest_dataset_summary(project_id: str, scenario_id: str) -> dict | None:
+    dataset = latest_dataset(project_id, scenario_id)
+
+    if not dataset:
+        return None
+
+    return dataset["summary"]
+
+
+def latest_dataset(project_id: str, scenario_id: str) -> dict | None:
     datasets = list_datasets(project_id, scenario_id)
 
     if not datasets:
         return None
 
-    return datasets[0]["summary"]
+    return datasets[0]
