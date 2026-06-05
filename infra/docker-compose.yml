@@ -62,6 +62,8 @@ services:
       args:
         INSTALL_ENERGY_EXTRAS: ${INSTALL_ENERGY_EXTRAS:-true}
     command: celery -A meridian_simulation.tasks.celery_app worker --loglevel=INFO
+    healthcheck:
+      disable: true
     depends_on:
       mariadb:
         condition: service_healthy
