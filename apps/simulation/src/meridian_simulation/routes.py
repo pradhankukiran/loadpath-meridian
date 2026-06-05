@@ -1,4 +1,6 @@
-from flask import Blueprint, current_app, jsonify, request
+from io import BytesIO
+
+from flask import Blueprint, current_app, jsonify, request, send_file
 from pydantic import BaseModel, Field, ValidationError
 
 from meridian_simulation.assistant import analyse_scenario
@@ -13,6 +15,7 @@ from meridian_simulation.job_store import (
     result_history as get_result_history,
 )
 from meridian_simulation.operations import service_status
+from meridian_simulation.report_package import build_report_package
 
 api = Blueprint("api", __name__)
 
@@ -145,6 +148,21 @@ def project_comparison(project_id: str):
             current_app.config["MERIDIAN_SETTINGS"],
         )
     }
+
+
+@api.get("/projects/<project_id>/reports/package")
+def project_report_package(project_id: str):
+    content, filename = build_report_package(
+        project_id,
+        current_app.config["MERIDIAN_SETTINGS"],
+    )
+
+    return send_file(
+        BytesIO(content),
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=filename,
+    )
 
 
 @api.post("/simulations")
