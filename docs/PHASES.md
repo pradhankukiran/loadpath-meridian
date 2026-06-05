@@ -120,13 +120,21 @@
 - Normalize capacity expansion outputs into costs, emissions, renewable share, and generation mix
 - Surface solver and artifact metadata in the workspace result panel
 
+## Phase 14: Results Dashboard Polish
+
+- Add scenario-level result history over persisted completed simulation runs
+- Expose run timestamps, adapter status, solver, artifact count, and headline metrics
+- Show selected-scenario job state in the workspace result panel
+- Add recent result history cards to the workspace dashboard
+- Upgrade the simulation operations page with queue totals, lifecycle timestamps, progress bars, and worker errors
+- Keep the dashboard backed by Flask simulation storage rather than static UI-only summaries
+
 ## Future Phases
 
 Future phases should add full product workflows without reframing the app as a
 demo or MVP:
 
 - Data source integrations
-- Results dashboards
 - Reports and exports
 - Exportable report packages
 - Production telemetry and usage metering

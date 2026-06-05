@@ -6,6 +6,7 @@ import {
   getProject,
   getProjects,
   getRecentSimulationJobs,
+  getScenarioResultHistory,
   getDataConnectors,
   getScenarioDatasets,
   importScenarioDataset,
@@ -16,8 +17,15 @@ import {
   type ScenarioDataset,
   type SimulationJob,
   type SimulationResult,
+  type SimulationResultHistoryItem,
 } from '../api'
-import { formatNumber, formatPercent } from '../lib/format'
+import {
+  formatDateTime,
+  formatNumber,
+  formatOptionalNumber,
+  formatOptionalPercent,
+  formatPercent,
+} from '../lib/format'
 
 const defaultScenarioForm = {
   name: 'Storage sensitivity run',
@@ -81,6 +89,9 @@ export function WorkspacePage() {
   const [projectDetail, setProjectDetail] = useState<Project | null>(null)
   const [jobs, setJobs] = useState<SimulationJob[]>([])
   const [latestResult, setLatestResult] = useState<SimulationResult | null>(null)
+  const [resultHistory, setResultHistory] = useState<
+    SimulationResultHistoryItem[]
+  >([])
   const [isLoading, setIsLoading] = useState(true)
   const [scenarioForm, setScenarioForm] = useState(defaultScenarioForm)
   const [submissionStatus, setSubmissionStatus] = useState<string>('')
@@ -168,24 +179,26 @@ export function WorkspacePage() {
   useEffect(() => {
     if (!selectedProjectId || !selectedScenario) {
       setLatestResult(null)
+      setResultHistory([])
       return
     }
 
     let isMounted = true
-    async function loadLatestResult() {
-      const result = await getLatestResult(
-        selectedProjectId,
-        selectedScenarioResultId,
-      )
+    async function loadScenarioResults() {
+      const [result, history] = await Promise.all([
+        getLatestResult(selectedProjectId, selectedScenarioResultId),
+        getScenarioResultHistory(selectedProjectId, selectedScenarioResultId),
+      ])
 
       if (!isMounted) {
         return
       }
 
       setLatestResult(result)
+      setResultHistory(history)
     }
 
-    loadLatestResult()
+    loadScenarioResults()
 
     return () => {
       isMounted = false
@@ -237,6 +250,12 @@ export function WorkspacePage() {
       'Selected project'
     )
   }, [projects, selectedProjectId])
+
+  const selectedScenarioJobs = jobs.filter(
+    (job) =>
+      job.project_id === selectedProjectId &&
+      job.scenario_id === selectedScenarioResultId,
+  )
 
   async function refreshWorkspace(projectId: string) {
     const [projectData, projectDataDetail, jobData] = await Promise.all([
@@ -291,8 +310,12 @@ export function WorkspacePage() {
 
       setSelectedScenarioId(scenario.id)
       await refreshWorkspace(selectedProjectId)
-      const generatedResult = await getLatestResult(selectedProjectId, scenario.id)
+      const [generatedResult, generatedHistory] = await Promise.all([
+        getLatestResult(selectedProjectId, scenario.id),
+        getScenarioResultHistory(selectedProjectId, scenario.id),
+      ])
       setLatestResult(generatedResult)
+      setResultHistory(generatedHistory)
       setSubmissionStatus(`Completed ${job.id}`)
     } catch {
       setSubmissionStatus('Could not create scenario or queue simulation')
@@ -454,12 +477,30 @@ export function WorkspacePage() {
               <a href="/simulations">Manage</a>
             </div>
             <ol>
-              {jobs.map((job) => (
+              {jobs.slice(0, 5).map((job) => (
                 <li key={job.id}>
                   <div>
                     <strong>{job.id}</strong>
                     <span>{job.model}</span>
-                    <small>{job.progress}% complete</small>
+                    <small>
+                      {job.project_id} / {job.scenario_id}
+                    </small>
+                    <div
+                      className="progress-track"
+                      aria-label={`${job.id} progress ${job.progress}%`}
+                    >
+                      <span
+                        className="progress-fill"
+                        style={{ width: `${job.progress}%` }}
+                      />
+                    </div>
+                    <small>
+                      {job.progress}% complete · submitted{' '}
+                      {formatDateTime(job.submitted_at)}
+                    </small>
+                    {job.error_message ? (
+                      <small className="error-copy">{job.error_message}</small>
+                    ) : null}
                   </div>
                   <span className={`tag tag-${job.status}`}>{job.status}</span>
                 </li>
@@ -829,6 +870,32 @@ export function WorkspacePage() {
 
                 <aside className="result-panel">
                   <h2>Latest result</h2>
+                  {selectedScenarioJobs.length ? (
+                    <div className="scenario-run-state">
+                      <h3>Selected scenario jobs</h3>
+                      <ol>
+                        {selectedScenarioJobs.slice(0, 3).map((job) => (
+                          <li key={job.id}>
+                            <div>
+                              <strong>{job.id}</strong>
+                              <small>
+                                {job.progress}% · {formatDateTime(job.submitted_at)}
+                              </small>
+                              <div className="progress-track">
+                                <span
+                                  className="progress-fill"
+                                  style={{ width: `${job.progress}%` }}
+                                />
+                              </div>
+                            </div>
+                            <span className={`tag tag-${job.status}`}>
+                              {job.status}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  ) : null}
                   {latestResult ? (
                     <>
                       <dl className="result-metrics">
@@ -962,6 +1029,75 @@ export function WorkspacePage() {
                               </dd>
                             </div>
                           </dl>
+                        </>
+                      ) : null}
+                      {resultHistory.length ? (
+                        <>
+                          <h3>Result history</h3>
+                          <div className="history-list">
+                            {resultHistory.slice(0, 5).map((run) => (
+                              <article key={run.job_id}>
+                                <div className="history-row-heading">
+                                  <strong>{run.job_id}</strong>
+                                  <span className={`tag tag-${run.status}`}>
+                                    {run.status}
+                                  </span>
+                                </div>
+                                <dl>
+                                  <div>
+                                    <dt>Completed</dt>
+                                    <dd>{formatDateTime(run.completed_at)}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Adapter</dt>
+                                    <dd>
+                                      {run.engine_adapter_status ? (
+                                        <span
+                                          className={`tag tag-${run.engine_adapter_status}`}
+                                        >
+                                          {run.engine_adapter_status.replace(
+                                            '_',
+                                            ' ',
+                                          )}
+                                        </span>
+                                      ) : (
+                                        '-'
+                                      )}
+                                    </dd>
+                                  </div>
+                                  <div>
+                                    <dt>Solver</dt>
+                                    <dd>{run.solver ?? '-'}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Artifacts</dt>
+                                    <dd>{run.artifact_count}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Cost</dt>
+                                    <dd>£{formatOptionalNumber(run.total_cost_million)}m</dd>
+                                  </div>
+                                  <div>
+                                    <dt>Renewables</dt>
+                                    <dd>
+                                      {formatOptionalPercent(
+                                        run.renewable_share_percent,
+                                      )}
+                                    </dd>
+                                  </div>
+                                  <div>
+                                    <dt>Emissions</dt>
+                                    <dd>
+                                      {formatOptionalNumber(
+                                        run.emissions_tonnes_co2e,
+                                      )}{' '}
+                                      tCO2e
+                                    </dd>
+                                  </div>
+                                </dl>
+                              </article>
+                            ))}
+                          </div>
                         </>
                       ) : null}
                       <h3>Generation mix</h3>

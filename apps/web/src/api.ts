@@ -33,6 +33,9 @@ export type SimulationJob = {
   status: string
   progress: number
   submitted_at: string
+  started_at?: string
+  completed_at?: string
+  error_message?: string
 }
 
 export type SimulationResult = {
@@ -70,6 +73,25 @@ export type SimulationResult = {
     curtailment_mw: number
   }>
   recommendations: string[]
+}
+
+export type SimulationResultHistoryItem = {
+  job_id: string
+  project_id: string
+  scenario_id: string
+  engine: string
+  model: string
+  status: string
+  submitted_at: string
+  completed_at: string
+  total_cost_million: number | null
+  renewable_share_percent: number | null
+  emissions_tonnes_co2e: number | null
+  curtailment_mwh: number | null
+  reliability_margin_percent: number | null
+  engine_adapter_status: string | null
+  solver: string | null
+  artifact_count: number
 }
 
 export type DataConnector = {
@@ -319,6 +341,27 @@ const fallbackResult: SimulationResult = {
   },
 }
 
+const fallbackResultHistory: SimulationResultHistoryItem[] = [
+  {
+    job_id: 'sim_seed_nw_base',
+    project_id: 'prj_nw_grid',
+    scenario_id: 'scn_nw_base',
+    engine: 'pypsa',
+    model: 'PyPSA energy-system optimisation',
+    status: 'complete',
+    submitted_at: '2026-06-04T07:20:00Z',
+    completed_at: '2026-06-04T07:20:00Z',
+    total_cost_million: fallbackResult.total_cost_million,
+    renewable_share_percent: fallbackResult.renewable_share_percent,
+    emissions_tonnes_co2e: fallbackResult.emissions_tonnes_co2e,
+    curtailment_mwh: fallbackResult.curtailment_mwh,
+    reliability_margin_percent: fallbackResult.reliability_margin_percent,
+    engine_adapter_status: fallbackResult.engine_adapter?.status ?? null,
+    solver: fallbackResult.engine_adapter?.solver ?? null,
+    artifact_count: 0,
+  },
+]
+
 const fallbackComparison: ScenarioComparison = {
   project_id: 'prj_nw_grid',
   scenario_count: 1,
@@ -545,6 +588,23 @@ export async function getLatestResult(
         projectId === 'prj_nw_grid' && scenarioId === 'scn_nw_base'
           ? fallbackResult
           : null,
+    },
+  )
+
+  return response.data
+}
+
+export async function getScenarioResultHistory(
+  projectId: string,
+  scenarioId: string,
+): Promise<SimulationResultHistoryItem[]> {
+  const response = await getJson<ApiEnvelope<SimulationResultHistoryItem[]>>(
+    `${simulationApiUrl}/projects/${projectId}/scenarios/${scenarioId}/results`,
+    {
+      data:
+        projectId === 'prj_nw_grid' && scenarioId === 'scn_nw_base'
+          ? fallbackResultHistory
+          : [],
     },
   )
 

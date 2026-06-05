@@ -9,6 +9,7 @@ build/
 .vite/
 
 vendor/
+storage/
 storage/*.key
 apps/simulation/storage/
 
