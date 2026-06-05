@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import {
   analyseScenario,
+  createProject,
   createScenario,
   getLatestResult,
   getProject,
@@ -45,6 +46,15 @@ const defaultDataImportForm = {
   latitude: '53.48',
   longitude: '-2.24',
   forecast_days: '7',
+}
+
+const defaultProjectForm = {
+  name: 'North Sea offshore grid study',
+  owner: 'System Planning',
+  region: 'Scotland, United Kingdom',
+  grid_region: 'GB transmission north',
+  description:
+    'Evaluate grid connection, reinforcement, and renewable integration options.',
 }
 
 const assistantPrompts = [
@@ -94,6 +104,10 @@ export function WorkspacePage() {
   >([])
   const [isLoading, setIsLoading] = useState(true)
   const [scenarioForm, setScenarioForm] = useState(defaultScenarioForm)
+  const [projectForm, setProjectForm] = useState(defaultProjectForm)
+  const [projectSubmissionStatus, setProjectSubmissionStatus] = useState('')
+  const [isProjectSubmitting, setIsProjectSubmitting] = useState(false)
+  const [isProjectFormVisible, setIsProjectFormVisible] = useState(false)
   const [submissionStatus, setSubmissionStatus] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [connectors, setConnectors] = useState<DataConnector[]>([])
@@ -233,6 +247,18 @@ export function WorkspacePage() {
     }
   }, [selectedProjectId, selectedScenarioResultId])
 
+  useEffect(() => {
+    if (!isProjectFormVisible) {
+      return
+    }
+
+    window.setTimeout(() => {
+      document
+        .getElementById('project-create')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }, [isProjectFormVisible])
+
   const activeProjectCount = projects.filter(
     (project) => project.status === 'active',
   ).length
@@ -267,6 +293,39 @@ export function WorkspacePage() {
     setProjects(projectData)
     setProjectDetail(projectDataDetail)
     setJobs(jobData)
+  }
+
+  async function handleProjectSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    setIsProjectSubmitting(true)
+    setProjectSubmissionStatus('Creating project')
+
+    try {
+      const project = await createProject({
+        name: projectForm.name,
+        owner: projectForm.owner,
+        region: projectForm.region,
+        grid_region: projectForm.grid_region,
+        description: projectForm.description,
+        status: 'active',
+      })
+      const [projectData, projectDataDetail] = await Promise.all([
+        getProjects(),
+        getProject(project.id),
+      ])
+
+      setProjects(projectData)
+      setProjectDetail(projectDataDetail)
+      setSelectedProjectId(project.id)
+      setSelectedScenarioId('')
+      setProjectSubmissionStatus(`Created ${project.name}`)
+      setProjectForm(defaultProjectForm)
+    } catch {
+      setProjectSubmissionStatus('Could not create project')
+    } finally {
+      setIsProjectSubmitting(false)
+    }
   }
 
   async function handleScenarioSubmit(event: FormEvent<HTMLFormElement>) {
@@ -400,7 +459,12 @@ export function WorkspacePage() {
             explain results with the Modal-backed assistant.
           </p>
           <div className="actions">
-            <button type="button">Create project</button>
+            <button
+              type="button"
+              onClick={() => setIsProjectFormVisible((current) => !current)}
+            >
+              Create project
+            </button>
             <a href="/simulations/new">Configure simulation</a>
           </div>
         </section>
@@ -423,6 +487,103 @@ export function WorkspacePage() {
             <strong>{isLoading ? '-' : completedJobCount}</strong>
           </div>
         </section>
+
+        {isProjectFormVisible ? (
+          <section
+            className="builder-panel project-create-panel"
+            id="project-create"
+            aria-labelledby="project-create-heading"
+          >
+            <div className="section-heading">
+              <h2 id="project-create-heading">Create project</h2>
+              <button
+                className="secondary-button compact-button"
+                type="button"
+                onClick={() => setIsProjectFormVisible(false)}
+              >
+                Close
+              </button>
+            </div>
+            <form onSubmit={handleProjectSubmit}>
+              <div className="form-grid">
+                <label>
+                  <span>Project name</span>
+                  <input
+                    value={projectForm.name}
+                    onChange={(event) =>
+                      setProjectForm({
+                        ...projectForm,
+                        name: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Owner</span>
+                  <input
+                    value={projectForm.owner}
+                    onChange={(event) =>
+                      setProjectForm({
+                        ...projectForm,
+                        owner: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Region</span>
+                  <input
+                    value={projectForm.region}
+                    onChange={(event) =>
+                      setProjectForm({
+                        ...projectForm,
+                        region: event.target.value,
+                      })
+                    }
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Grid region</span>
+                  <input
+                    value={projectForm.grid_region}
+                    onChange={(event) =>
+                      setProjectForm({
+                        ...projectForm,
+                        grid_region: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label className="full-width">
+                  <span>Description</span>
+                  <textarea
+                    value={projectForm.description}
+                    onChange={(event) =>
+                      setProjectForm({
+                        ...projectForm,
+                        description: event.target.value,
+                      })
+                    }
+                    rows={3}
+                  />
+                </label>
+              </div>
+              <div className="form-actions">
+                <button type="submit" disabled={isProjectSubmitting}>
+                  {isProjectSubmitting ? 'Creating' : 'Create project'}
+                </button>
+                {projectSubmissionStatus ? (
+                  <span className="status-message">
+                    {projectSubmissionStatus}
+                  </span>
+                ) : null}
+              </div>
+            </form>
+          </section>
+        ) : null}
 
         <section className="two-column">
           <div>

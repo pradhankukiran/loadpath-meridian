@@ -398,6 +398,10 @@ td small {
   border-bottom: 1px solid #b1b4b6;
 }
 
+.project-create-panel {
+  margin-top: -16px;
+}
+
 .data-panel {
   margin-bottom: 36px;
   padding: 22px 0;
@@ -818,6 +822,10 @@ td small {
 
 .secondary-button:hover {
   background: #f3f2f1;
+}
+
+.compact-button {
+  padding: 6px 10px;
 }
 
 .assistant-response {
