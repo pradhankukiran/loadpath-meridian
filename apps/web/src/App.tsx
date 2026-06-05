@@ -1,6 +1,8 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import './App.css'
 import { DataSourcesPage } from './pages/DataSourcesPage'
+import { NewProjectPage } from './pages/NewProjectPage'
+import { ProjectDetailPage } from './pages/ProjectDetailPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { SimulationsPage } from './pages/SimulationsPage'
@@ -36,6 +38,8 @@ function App() {
         <Routes>
           <Route path="/" element={<WorkspacePage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/new" element={<NewProjectPage />} />
+          <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/simulations" element={<SimulationsPage />} />
           <Route path="/data-sources" element={<DataSourcesPage />} />
           <Route path="/reports" element={<ReportsPage />} />

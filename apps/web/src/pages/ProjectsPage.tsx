@@ -28,6 +28,9 @@ export function ProjectsPage() {
           Manage energy infrastructure studies, regions, owners, and scenario
           counts across the platform.
         </p>
+        <div className="actions">
+          <Link to="/projects/new">Create project</Link>
+        </div>
       </section>
 
       <div className="table-wrap">
@@ -46,7 +49,7 @@ export function ProjectsPage() {
             {projects.map((project) => (
               <tr key={project.id}>
                 <th scope="row">
-                  <Link to="/">{project.name}</Link>
+                  <Link to={`/projects/${project.id}`}>{project.name}</Link>
                 </th>
                 <td>{project.owner}</td>
                 <td>{project.region}</td>
