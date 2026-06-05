@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
   analyseScenario,
   createScenario,
@@ -84,6 +84,7 @@ function artifactCount(
 }
 
 export function WorkspacePage() {
+  const { projectId: routeProjectId = '' } = useParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>('')
@@ -124,7 +125,9 @@ export function WorkspacePage() {
       setProjects(projectData)
       setJobs(jobData)
       setConnectors(connectorData)
-      setSelectedProjectId((current) => current || projectData[0]?.id || '')
+      setSelectedProjectId(
+        (current) => routeProjectId || current || projectData[0]?.id || '',
+      )
       setIsLoading(false)
     }
 
@@ -133,7 +136,7 @@ export function WorkspacePage() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [routeProjectId])
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -387,7 +390,15 @@ export function WorkspacePage() {
           </p>
           <div className="actions">
             <Link to="/projects/new">Create project</Link>
-            <a href="#scenario-builder">Configure simulation</a>
+            <Link
+              to={
+                selectedProjectId
+                  ? `/projects/${selectedProjectId}/scenarios/new`
+                  : '/projects'
+              }
+            >
+              Configure simulation
+            </Link>
           </div>
         </section>
 
@@ -414,7 +425,7 @@ export function WorkspacePage() {
           <div>
             <div className="section-heading">
               <h2>Projects</h2>
-              <a href="/projects">View all</a>
+              <Link to="/projects">View all</Link>
             </div>
             <div className="table-wrap">
               <table>
@@ -451,7 +462,7 @@ export function WorkspacePage() {
           <aside className="queue" aria-label="Simulation queue">
             <div className="section-heading">
               <h2>Simulation queue</h2>
-              <a href="/simulations">Manage</a>
+              <Link to="/simulations">Manage</Link>
             </div>
             <ol>
               {jobs.slice(0, 5).map((job) => (

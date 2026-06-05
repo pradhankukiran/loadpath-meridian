@@ -38,8 +38,8 @@ export function ProjectDetailPage() {
         <h1>{project.name}</h1>
         <p>{project.description ?? 'No project description has been recorded.'}</p>
         <div className="actions">
-          <Link to="/">Open workspace</Link>
-          <Link to="/reports">Open reports</Link>
+          <Link to={`/projects/${project.id}/workspace`}>Open workspace</Link>
+          <Link to={`/projects/${project.id}/reports`}>Open reports</Link>
         </div>
       </section>
 
@@ -64,7 +64,7 @@ export function ProjectDetailPage() {
 
       <div className="section-heading">
         <h2>Scenarios</h2>
-        <Link to="/">Create scenario</Link>
+        <Link to={`/projects/${project.id}/scenarios/new`}>Create scenario</Link>
       </div>
 
       <div className="table-wrap">

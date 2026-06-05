@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   downloadProjectReportPackage,
   getProjects,
@@ -9,6 +10,8 @@ import {
 import { formatNumber, formatPercent } from '../lib/format'
 
 export function ReportsPage() {
+  const { projectId: routeProjectId = '' } = useParams()
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState('')
   const [comparison, setComparison] = useState<ScenarioComparison | null>(null)
@@ -24,13 +27,15 @@ export function ReportsPage() {
       }
 
       setProjects(data)
-      setSelectedProjectId((current) => current || data[0]?.id || '')
+      setSelectedProjectId(
+        (current) => routeProjectId || current || data[0]?.id || '',
+      )
     })
 
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [routeProjectId])
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -97,7 +102,14 @@ export function ReportsPage() {
             <span>Project</span>
             <select
               value={selectedProjectId}
-              onChange={(event) => setSelectedProjectId(event.target.value)}
+              onChange={(event) => {
+                const nextProjectId = event.target.value
+                setSelectedProjectId(nextProjectId)
+
+                if (routeProjectId) {
+                  navigate(`/projects/${nextProjectId}/reports`)
+                }
+              }}
             >
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -119,6 +131,9 @@ export function ReportsPage() {
             ) : null}
           </div>
         </div>
+        {selectedProjectId ? (
+          <Link to={`/projects/${selectedProjectId}`}>Open project</Link>
+        ) : null}
       </section>
 
       {comparison ? (
