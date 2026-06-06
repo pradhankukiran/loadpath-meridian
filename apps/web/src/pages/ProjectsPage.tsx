@@ -58,6 +58,10 @@ export function ProjectsPage() {
               <tr>
                 <td colSpan={6}>{loadStatus}</td>
               </tr>
+            ) : !projects.length ? (
+              <tr>
+                <td colSpan={6}>No projects have been created.</td>
+              </tr>
             ) : (
               projects.map((project) => (
                 <tr key={project.id}>

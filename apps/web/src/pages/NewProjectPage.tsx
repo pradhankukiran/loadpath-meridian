@@ -3,12 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { createProject } from '../api'
 
 const defaultProjectForm = {
-  name: 'North Sea offshore grid study',
-  owner: 'System Planning',
-  region: 'Scotland, United Kingdom',
-  grid_region: 'GB transmission north',
-  description:
-    'Evaluate grid connection, reinforcement, and renewable integration options.',
+  name: '',
+  owner: '',
+  region: '',
+  grid_region: '',
+  description: '',
 }
 
 export function NewProjectPage() {
@@ -47,8 +46,8 @@ export function NewProjectPage() {
         <span className="caption">Projects</span>
         <h1>Create project</h1>
         <p>
-          Create a project workspace for an infrastructure study, then add
-          scenarios and simulation runs from the project detail page.
+          Create an infrastructure study, then add scenarios and simulation
+          runs from the project page.
         </p>
       </section>
 

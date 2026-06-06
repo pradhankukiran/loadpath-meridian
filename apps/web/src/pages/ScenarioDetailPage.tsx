@@ -95,7 +95,6 @@ export function ScenarioDetailPage() {
         <p>{scenario.objective}</p>
         <div className="actions">
           <Link to={`/projects/${project.id}`}>Open project</Link>
-          <Link to={`/projects/${project.id}/workspace`}>Open workspace</Link>
           <Link to={`/projects/${project.id}/reports`}>Open reports</Link>
         </div>
       </section>

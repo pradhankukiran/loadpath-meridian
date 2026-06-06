@@ -8,7 +8,6 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { ReportsPage } from './pages/ReportsPage'
 import { ScenarioDetailPage } from './pages/ScenarioDetailPage'
 import { SimulationsPage } from './pages/SimulationsPage'
-import { WorkspacePage } from './pages/WorkspacePage'
 import { OperationsPage } from './pages/OperationsPage'
 
 function App() {
@@ -16,14 +15,13 @@ function App() {
     <div className="app-shell">
       <header className="service-header">
         <div className="container header-inner">
-          <NavLink className="brand" to="/">
+          <NavLink className="brand" to="/projects">
             Loadpath Meridian
           </NavLink>
           <nav aria-label="Primary navigation">
             <NavLink to="/projects">Projects</NavLink>
             <NavLink to="/simulations">Simulations</NavLink>
             <NavLink to="/data-sources">Data sources</NavLink>
-            <NavLink to="/reports">Reports</NavLink>
             <NavLink to="/operations">Operations</NavLink>
           </nav>
         </div>
@@ -38,14 +36,10 @@ function App() {
         </div>
 
         <Routes>
-          <Route path="/" element={<WorkspacePage />} />
+          <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/new" element={<NewProjectPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-          <Route
-            path="/projects/:projectId/workspace"
-            element={<WorkspacePage />}
-          />
           <Route
             path="/projects/:projectId/scenarios/new"
             element={<NewScenarioPage />}
@@ -57,9 +51,9 @@ function App() {
           <Route path="/projects/:projectId/reports" element={<ReportsPage />} />
           <Route path="/simulations" element={<SimulationsPage />} />
           <Route path="/data-sources" element={<DataSourcesPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/reports" element={<Navigate to="/projects" replace />} />
           <Route path="/operations" element={<OperationsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/projects" replace />} />
         </Routes>
       </main>
     </div>

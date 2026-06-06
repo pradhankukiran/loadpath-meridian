@@ -3,16 +3,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { createScenario, getProject, submitSimulation, type Project } from '../api'
 
 const defaultScenarioForm = {
-  name: 'Storage sensitivity run',
-  objective: 'Test whether additional battery storage reduces curtailment and peak grid imports.',
+  name: '',
+  objective: '',
   engine: 'pypsa',
-  horizon: '2035',
-  annual_demand_mwh: '1840000',
-  peak_load_mw: '482',
-  renewable_share_target: '76',
-  storage_duration_hours: '6',
-  carbon_price: '92',
-  grid_import_limit_mw: '310',
+  horizon: '',
+  annual_demand_mwh: '',
+  peak_load_mw: '',
+  renewable_share_target: '',
+  storage_duration_hours: '',
+  carbon_price: '',
+  grid_import_limit_mw: '',
 }
 
 export function NewScenarioPage() {
@@ -107,7 +107,6 @@ export function NewScenarioPage() {
         </p>
         <div className="actions">
           <Link to={`/projects/${projectId}`}>Back to project</Link>
-          <Link to={`/projects/${projectId}/workspace`}>Open workspace</Link>
         </div>
       </section>
 
