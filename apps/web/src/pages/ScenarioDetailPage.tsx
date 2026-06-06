@@ -129,8 +129,8 @@ export function ScenarioDetailPage() {
           <strong>{formatNumber(scenario.peak_load_mw)} MW</strong>
         </div>
         <div className="summary-item">
-          <span>Status</span>
-          <strong>{scenario.status}</strong>
+          <span>{latestJob ? 'Latest run' : 'Scenario state'}</span>
+          <strong>{latestJob?.status ?? scenario.status}</strong>
         </div>
       </section>
 
