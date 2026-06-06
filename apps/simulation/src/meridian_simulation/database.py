@@ -40,7 +40,8 @@ _engines: dict[str, Engine] = {}
 def initialize_database(settings: Settings) -> None:
     engine = database_engine(settings.database_url)
     metadata.create_all(engine)
-    seed_reference_data(engine)
+    if settings.seed_reference_data:
+        seed_reference_data(engine)
 
 
 def database_status(settings: Settings) -> str:

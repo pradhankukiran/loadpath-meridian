@@ -26,6 +26,7 @@ services:
       APP_ENV: local
       APP_KEY: ${PLATFORM_APP_KEY:-}
       APP_DEBUG: "true"
+      PLATFORM_SEED_DEMO_DATA: ${PLATFORM_SEED_DEMO_DATA:-false}
       DB_CONNECTION: mysql
       DB_HOST: mariadb
       DB_PORT: 3306
@@ -52,6 +53,7 @@ services:
       SIMULATION_DATABASE_URL: mysql+pymysql://meridian:meridian@mariadb:3306/meridian
       SIMULATION_ARTIFACT_DIR: /app/storage/artifacts
       SIMULATION_SYNC_JOBS: "false"
+      SIMULATION_SEED_REFERENCE_DATA: ${SIMULATION_SEED_REFERENCE_DATA:-false}
       MODAL_LLM_ENDPOINT: ${MODAL_LLM_ENDPOINT:-}
       NREL_API_KEY: ${NREL_API_KEY:-}
       EIA_API_KEY: ${EIA_API_KEY:-}
@@ -74,6 +76,7 @@ services:
       SIMULATION_DATABASE_URL: mysql+pymysql://meridian:meridian@mariadb:3306/meridian
       SIMULATION_ARTIFACT_DIR: /app/storage/artifacts
       SIMULATION_SYNC_JOBS: "false"
+      SIMULATION_SEED_REFERENCE_DATA: ${SIMULATION_SEED_REFERENCE_DATA:-false}
       MODAL_LLM_ENDPOINT: ${MODAL_LLM_ENDPOINT:-}
       NREL_API_KEY: ${NREL_API_KEY:-}
       EIA_API_KEY: ${EIA_API_KEY:-}
