@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { getProject, type Project } from '../api'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { deleteProject, getProject, type Project } from '../api'
 import { formatNumber, formatPercent } from '../lib/format'
 
 export function ProjectDetailPage() {
   const { projectId = '' } = useParams()
+  const navigate = useNavigate()
   const [project, setProject] = useState<Project | null>(null)
   const [loadStatus, setLoadStatus] = useState('Loading project')
+  const [deleteStatus, setDeleteStatus] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     if (!projectId) {
@@ -33,6 +36,31 @@ export function ProjectDetailPage() {
     }
   }, [projectId])
 
+  async function handleDeleteProject() {
+    if (!project) {
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Delete ${project.name}? This removes its scenarios and simulation records.`,
+    )
+
+    if (!confirmed) {
+      return
+    }
+
+    setIsDeleting(true)
+    setDeleteStatus('Deleting project')
+
+    try {
+      await deleteProject(project.id)
+      navigate('/projects')
+    } catch {
+      setDeleteStatus('Could not delete project')
+      setIsDeleting(false)
+    }
+  }
+
   if (!project) {
     return (
       <section className="page-heading">
@@ -54,8 +82,18 @@ export function ProjectDetailPage() {
         <h1>{project.name}</h1>
         <p>{project.description ?? 'No project description has been recorded.'}</p>
         <div className="actions">
-          <Link to={`/projects/${project.id}/scenarios/new`}>Create scenario</Link>
           <Link to={`/projects/${project.id}/reports`}>Open reports</Link>
+          <button
+            type="button"
+            className="secondary-button danger-button"
+            onClick={handleDeleteProject}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting' : 'Delete project'}
+          </button>
+          {deleteStatus ? (
+            <span className="status-message">{deleteStatus}</span>
+          ) : null}
         </div>
       </section>
 

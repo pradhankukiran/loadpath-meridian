@@ -139,6 +139,43 @@ def test_simulation_submission_returns_queued_job():
     assert history_response.json["data"][0]["total_cost_million"] is not None
 
 
+def test_project_delete_removes_simulation_records(tmp_path):
+    app = create_app(
+        Settings(
+            redis_url="redis://localhost:1/0",
+            modal_llm_endpoint=None,
+            nrel_api_key=None,
+            eia_api_key=None,
+            database_url=f"sqlite:///{tmp_path / 'simulation.db'}",
+            artifact_dir=str(tmp_path / "artifacts"),
+            sync_jobs=True,
+            seed_reference_data=False,
+        )
+    )
+    client = app.test_client()
+
+    client.post(
+        "/api/simulations",
+        json={
+            "project_id": "prj_delete",
+            "scenario_id": "scn_delete",
+            "engine": "pypsa",
+            "objective": "Create records for deletion.",
+        },
+    )
+
+    response = client.delete("/api/projects/prj_delete")
+
+    assert response.status_code == 200
+    assert response.json == {"data": {"deleted_simulation_jobs": 1}}
+
+    result_response = client.get("/api/projects/prj_delete/scenarios/scn_delete/results/latest")
+    assert result_response.json == {"data": None}
+
+    recent_response = client.get("/api/simulations/recent")
+    assert all(job["project_id"] != "prj_delete" for job in recent_response.json["data"])
+
+
 def test_recent_simulations_endpoint_returns_queue_items():
     client = create_app().test_client()
 

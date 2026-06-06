@@ -10,10 +10,93 @@ const defaultScenarioForm = {
   annual_demand_mwh: '',
   peak_load_mw: '',
   renewable_share_target: '',
-  storage_duration_hours: '',
-  carbon_price: '',
-  grid_import_limit_mw: '',
+  storage_duration_hours: '4',
+  carbon_price: '92',
+  grid_import_limit_mw: '310',
 }
+
+const objectiveOptions = [
+  { value: '', label: 'Select objective' },
+  {
+    value: 'Minimise system cost while meeting forecast demand.',
+    label: 'Least-cost capacity plan',
+  },
+  {
+    value: 'Evaluate grid reinforcement needs under peak demand growth.',
+    label: 'Grid reinforcement study',
+  },
+  {
+    value: 'Estimate renewable and storage build-out required for target compliance.',
+    label: 'Renewable/storage build-out',
+  },
+  {
+    value: 'Assess reliability and curtailment under constrained imports.',
+    label: 'Reliability and curtailment',
+  },
+  {
+    value: 'Quantify emissions reduction from clean generation and flexibility.',
+    label: 'Emissions reduction',
+  },
+]
+
+const horizonOptions = [
+  { value: '', label: 'Select horizon' },
+  { value: '2028', label: '2028 near-term delivery' },
+  { value: '2030', label: '2030 policy milestone' },
+  { value: '2035', label: '2035 planning case' },
+  { value: '2040', label: '2040 transition case' },
+  { value: '2050', label: '2050 net zero case' },
+]
+
+const annualDemandOptions = [
+  { value: '', label: 'Select annual demand' },
+  { value: '250000', label: '250,000 MWh local distribution' },
+  { value: '620000', label: '620,000 MWh regional network' },
+  { value: '1840000', label: '1,840,000 MWh transmission zone' },
+  { value: '5000000', label: '5,000,000 MWh national system' },
+]
+
+const peakLoadOptions = [
+  { value: '', label: 'Select peak load' },
+  { value: '75', label: '75 MW local peak' },
+  { value: '155', label: '155 MW urban peak' },
+  { value: '482', label: '482 MW transmission peak' },
+  { value: '1200', label: '1,200 MW national peak' },
+]
+
+const renewableTargetOptions = [
+  { value: '', label: 'Select renewable target' },
+  { value: '50', label: '50% balanced transition' },
+  { value: '65', label: '65% accelerated build-out' },
+  { value: '75', label: '75% high-renewable case' },
+  { value: '85', label: '85% clean system case' },
+  { value: '95', label: '95% near-zero-carbon case' },
+]
+
+const storageDurationOptions = [
+  { value: '0', label: '0 hours no storage' },
+  { value: '2', label: '2 hours short-duration' },
+  { value: '4', label: '4 hours grid battery' },
+  { value: '6', label: '6 hours evening peak' },
+  { value: '8', label: '8 hours long-duration' },
+  { value: '12', label: '12 hours resilience case' },
+]
+
+const carbonPriceOptions = [
+  { value: '0', label: 'GBP 0/tCO2e none' },
+  { value: '50', label: 'GBP 50/tCO2e low' },
+  { value: '92', label: 'GBP 92/tCO2e central' },
+  { value: '125', label: 'GBP 125/tCO2e high' },
+  { value: '180', label: 'GBP 180/tCO2e stress case' },
+]
+
+const gridImportLimitOptions = [
+  { value: '0', label: '0 MW islanded system' },
+  { value: '150', label: '150 MW constrained import' },
+  { value: '310', label: '310 MW central import' },
+  { value: '500', label: '500 MW reinforced import' },
+  { value: '1000', label: '1,000 MW unconstrained import' },
+]
 
 export function NewScenarioPage() {
   const { projectId = '' } = useParams()
@@ -149,7 +232,7 @@ export function NewScenarioPage() {
             </label>
             <label className="full-width">
               <span>Objective</span>
-              <textarea
+              <select
                 name="objective"
                 value={scenarioForm.objective}
                 onChange={(event) =>
@@ -158,13 +241,18 @@ export function NewScenarioPage() {
                     objective: event.target.value,
                   })
                 }
-                rows={3}
                 required
-              />
+              >
+                {objectiveOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Horizon</span>
-              <input
+              <select
                 name="horizon"
                 value={scenarioForm.horizon}
                 onChange={(event) =>
@@ -174,14 +262,18 @@ export function NewScenarioPage() {
                   })
                 }
                 required
-              />
+              >
+                {horizonOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Annual demand MWh</span>
-              <input
+              <select
                 name="annual_demand_mwh"
-                type="number"
-                min="0"
                 value={scenarioForm.annual_demand_mwh}
                 onChange={(event) =>
                   setScenarioForm({
@@ -190,14 +282,18 @@ export function NewScenarioPage() {
                   })
                 }
                 required
-              />
+              >
+                {annualDemandOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Peak load MW</span>
-              <input
+              <select
                 name="peak_load_mw"
-                type="number"
-                min="0"
                 value={scenarioForm.peak_load_mw}
                 onChange={(event) =>
                   setScenarioForm({
@@ -206,15 +302,18 @@ export function NewScenarioPage() {
                   })
                 }
                 required
-              />
+              >
+                {peakLoadOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Renewable target %</span>
-              <input
+              <select
                 name="renewable_share_target"
-                type="number"
-                min="0"
-                max="100"
                 value={scenarioForm.renewable_share_target}
                 onChange={(event) =>
                   setScenarioForm({
@@ -223,14 +322,18 @@ export function NewScenarioPage() {
                   })
                 }
                 required
-              />
+              >
+                {renewableTargetOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Storage duration hours</span>
-              <input
+              <select
                 name="storage_duration_hours"
-                type="number"
-                min="0"
                 value={scenarioForm.storage_duration_hours}
                 onChange={(event) =>
                   setScenarioForm({
@@ -238,14 +341,18 @@ export function NewScenarioPage() {
                     storage_duration_hours: event.target.value,
                   })
                 }
-              />
+              >
+                {storageDurationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Carbon price GBP/tCO2e</span>
-              <input
+              <select
                 name="carbon_price"
-                type="number"
-                min="0"
                 value={scenarioForm.carbon_price}
                 onChange={(event) =>
                   setScenarioForm({
@@ -253,14 +360,18 @@ export function NewScenarioPage() {
                     carbon_price: event.target.value,
                   })
                 }
-              />
+              >
+                {carbonPriceOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Grid import limit MW</span>
-              <input
+              <select
                 name="grid_import_limit_mw"
-                type="number"
-                min="0"
                 value={scenarioForm.grid_import_limit_mw}
                 onChange={(event) =>
                   setScenarioForm({
@@ -268,7 +379,13 @@ export function NewScenarioPage() {
                     grid_import_limit_mw: event.target.value,
                   })
                 }
-              />
+              >
+                {gridImportLimitOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <div className="form-actions">

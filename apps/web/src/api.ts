@@ -487,6 +487,19 @@ async function postJson<TResponse, TPayload>(
   return (await response.json()) as TResponse
 }
 
+async function deleteJson(url: string): Promise<void> {
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'X-Request-ID': createRequestId(),
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`)
+  }
+}
+
 async function getBlob(url: string): Promise<Blob> {
   const response = await fetch(url, {
     headers: {
@@ -545,6 +558,11 @@ export async function getProject(projectId: string): Promise<Project> {
   )
 
   return response.data
+}
+
+export async function deleteProject(projectId: string): Promise<void> {
+  await deleteJson(`${simulationApiUrl}/projects/${projectId}`)
+  await deleteJson(`${platformApiUrl}/projects/${projectId}`)
 }
 
 export async function createScenario(

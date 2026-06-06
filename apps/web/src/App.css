@@ -820,6 +820,16 @@ td small {
   background: #f3f2f1;
 }
 
+.danger-button {
+  border-color: #d4351c;
+  color: #d4351c;
+}
+
+.danger-button:hover {
+  background: #f6d7d2;
+  color: #942514;
+}
+
 .assistant-response {
   margin-top: 18px;
   padding-top: 14px;

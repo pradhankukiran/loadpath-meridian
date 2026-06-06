@@ -8,6 +8,7 @@ from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
 from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
+from meridian_simulation.database import delete_project_records
 from meridian_simulation.job_store import (
     enqueue_job,
     latest_result as get_latest_result,
@@ -163,6 +164,16 @@ def project_report_package(project_id: str):
         as_attachment=True,
         download_name=filename,
     )
+
+
+@api.delete("/projects/<project_id>")
+def delete_project_simulation_data(project_id: str):
+    deleted_count = delete_project_records(
+        current_app.config["MERIDIAN_SETTINGS"],
+        project_id,
+    )
+
+    return {"data": {"deleted_simulation_jobs": deleted_count}}
 
 
 @api.post("/simulations")

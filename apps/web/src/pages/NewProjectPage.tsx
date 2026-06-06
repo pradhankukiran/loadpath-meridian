@@ -10,6 +10,38 @@ const defaultProjectForm = {
   description: '',
 }
 
+const ownerOptions = [
+  { value: '', label: 'Select owner' },
+  { value: 'System Planning', label: 'System Planning' },
+  { value: 'Transmission Planning', label: 'Transmission Planning' },
+  { value: 'Distribution Planning', label: 'Distribution Planning' },
+  { value: 'Asset Management', label: 'Asset Management' },
+  { value: 'Commercial Strategy', label: 'Commercial Strategy' },
+]
+
+const regionOptions = [
+  { value: '', label: 'Select region' },
+  { value: 'United Kingdom', label: 'United Kingdom' },
+  { value: 'Scotland, United Kingdom', label: 'Scotland, United Kingdom' },
+  {
+    value: 'England and Wales, United Kingdom',
+    label: 'England and Wales, United Kingdom',
+  },
+  { value: 'European Union', label: 'European Union' },
+  { value: 'United States', label: 'United States' },
+  { value: 'Middle East', label: 'Middle East' },
+]
+
+const gridRegionOptions = [
+  { value: '', label: 'Select grid region' },
+  { value: 'GB transmission north', label: 'GB transmission north' },
+  { value: 'GB transmission south', label: 'GB transmission south' },
+  { value: 'GB distribution network', label: 'GB distribution network' },
+  { value: 'WECC southwest', label: 'WECC southwest' },
+  { value: 'ERCOT', label: 'ERCOT' },
+  { value: 'ENTSO-E continental', label: 'ENTSO-E continental' },
+]
+
 export function NewProjectPage() {
   const navigate = useNavigate()
   const [projectForm, setProjectForm] = useState(defaultProjectForm)
@@ -70,7 +102,7 @@ export function NewProjectPage() {
             </label>
             <label>
               <span>Owner</span>
-              <input
+              <select
                 value={projectForm.owner}
                 onChange={(event) =>
                   setProjectForm({
@@ -79,11 +111,17 @@ export function NewProjectPage() {
                   })
                 }
                 required
-              />
+              >
+                {ownerOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Region</span>
-              <input
+              <select
                 value={projectForm.region}
                 onChange={(event) =>
                   setProjectForm({
@@ -92,11 +130,17 @@ export function NewProjectPage() {
                   })
                 }
                 required
-              />
+              >
+                {regionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>Grid region</span>
-              <input
+              <select
                 value={projectForm.grid_region}
                 onChange={(event) =>
                   setProjectForm({
@@ -104,7 +148,14 @@ export function NewProjectPage() {
                     grid_region: event.target.value,
                   })
                 }
-              />
+                required
+              >
+                {gridRegionOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </label>
             <label className="full-width">
               <span>Description</span>

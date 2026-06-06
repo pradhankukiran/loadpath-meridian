@@ -32,7 +32,7 @@ def create_app(settings: Settings | None = None) -> Flask:
         response.headers["Access-Control-Allow-Headers"] = (
             "Content-Type, Authorization, X-Request-ID"
         )
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
         return response
 
     return app

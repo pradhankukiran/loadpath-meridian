@@ -7,6 +7,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
+if (! function_exists('meridian_resource_id')) {
+    function meridian_resource_id(string $prefix, string $name): string
+    {
+        $suffix = Str::lower(Str::random(5));
+        $maxSlugLength = 36 - strlen($prefix) - strlen($suffix) - 2;
+        $slug = Str::of($name)->slug('_')->limit($maxSlugLength, '');
+
+        return "{$prefix}_{$slug}_{$suffix}";
+    }
+}
+
 Route::get('/health', function () {
     return [
         'service' => 'loadpath-meridian-platform',
@@ -64,7 +75,7 @@ Route::post('/projects', function (Request $request) {
 
     $project = Project::query()->create([
         ...$data,
-        'id' => 'prj_'.Str::of($data['name'])->slug('_')->limit(36, '').'_'.Str::lower(Str::random(5)),
+        'id' => meridian_resource_id('prj', $data['name']),
         'status' => $data['status'] ?? 'active',
     ]);
 
@@ -75,6 +86,12 @@ Route::get('/projects/{project}', function (Project $project) {
     return [
         'data' => $project->load('scenarios'),
     ];
+});
+
+Route::delete('/projects/{project}', function (Project $project) {
+    $project->delete();
+
+    return response()->noContent();
 });
 
 Route::get('/projects/{project}/scenarios', function (Project $project) {
@@ -100,7 +117,7 @@ Route::post('/projects/{project}/scenarios', function (Request $request, Project
 
     $scenario = $project->scenarios()->create([
         ...$data,
-        'id' => 'scn_'.Str::of($data['name'])->slug('_')->limit(36, '').'_'.Str::lower(Str::random(5)),
+        'id' => meridian_resource_id('scn', $data['name']),
         'status' => $data['status'] ?? 'ready',
         'assumptions' => $data['assumptions'] ?? [],
     ]);

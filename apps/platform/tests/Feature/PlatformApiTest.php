@@ -70,6 +70,8 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('data.name', 'Offshore wind grid landing study')
             ->assertJsonPath('data.status', 'active')
             ->assertJsonPath('data.scenarios_count', 0);
+
+        $this->assertLessThanOrEqual(36, strlen($response->json('data.id')));
     }
 
     public function test_scenario_can_be_created_for_project(): void
@@ -95,6 +97,8 @@ class PlatformApiTest extends TestCase
             ->assertJsonPath('data.engine', 'pypsa')
             ->assertJsonPath('data.status', 'ready')
             ->assertJsonPath('data.assumptions.electrolyser_capacity_mw', 140);
+
+        $this->assertLessThanOrEqual(36, strlen($response->json('data.id')));
     }
 
     public function test_scenario_creation_validates_engine(): void
@@ -122,6 +126,17 @@ class PlatformApiTest extends TestCase
         $response = $this->getJson('/api/projects/prj_solar_storage/scenarios/scn_nw_base');
 
         $response->assertNotFound();
+    }
+
+    public function test_project_can_be_deleted_with_scenarios(): void
+    {
+        $this->seed();
+
+        $response = $this->deleteJson('/api/projects/prj_nw_grid');
+
+        $response->assertNoContent();
+        $this->assertDatabaseMissing('projects', ['id' => 'prj_nw_grid']);
+        $this->assertDatabaseMissing('scenarios', ['project_id' => 'prj_nw_grid']);
     }
 
     public function test_subscription_endpoint_exposes_the_current_plan(): void

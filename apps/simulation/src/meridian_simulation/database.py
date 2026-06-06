@@ -222,6 +222,16 @@ def project_result_records(settings: Settings, project_id: str) -> list[dict]:
     return list(latest_by_scenario.values())
 
 
+def delete_project_records(settings: Settings, project_id: str) -> int:
+    engine = database_engine(settings.database_url)
+    with engine.begin() as connection:
+        result = connection.execute(
+            simulation_jobs.delete().where(simulation_jobs.c.project_id == project_id)
+        )
+
+    return int(result.rowcount or 0)
+
+
 def get_job_row(settings: Settings, job_id: str) -> dict | None:
     engine = database_engine(settings.database_url)
     with engine.connect() as connection:
