@@ -5,9 +5,11 @@ import {
   getProject,
   getScenarioDatasets,
   getScenarioResultHistory,
+  getScenarioSimulationJobs,
   type Project,
   type Scenario,
   type ScenarioDataset,
+  type SimulationJob,
   type SimulationResult,
   type SimulationResultHistoryItem,
 } from '../api'
@@ -20,6 +22,7 @@ export function ScenarioDetailPage() {
   const [scenario, setScenario] = useState<Scenario | null>(null)
   const [latestResult, setLatestResult] = useState<SimulationResult | null>(null)
   const [history, setHistory] = useState<SimulationResultHistoryItem[]>([])
+  const [jobs, setJobs] = useState<SimulationJob[]>([])
   const [datasets, setDatasets] = useState<ScenarioDataset[]>([])
   const [loadStatus, setLoadStatus] = useState('Loading scenario')
 
@@ -30,15 +33,18 @@ export function ScenarioDetailPage() {
 
     let isMounted = true
 
-    async function loadScenario() {
-      setLoadStatus('Loading scenario')
+    async function loadScenario(showLoadingState = false) {
+      if (showLoadingState) {
+        setLoadStatus('Loading scenario')
+      }
 
       try {
-        const [projectData, resultData, historyData, datasetData] =
+        const [projectData, resultData, historyData, jobData, datasetData] =
           await Promise.all([
             getProject(projectId),
             getLatestResult(projectId, scenarioId),
             getScenarioResultHistory(projectId, scenarioId),
+            getScenarioSimulationJobs(projectId, scenarioId),
             getScenarioDatasets(projectId, scenarioId),
           ])
 
@@ -53,6 +59,7 @@ export function ScenarioDetailPage() {
         setScenario(matchingScenario)
         setLatestResult(resultData)
         setHistory(historyData)
+        setJobs(jobData)
         setDatasets(datasetData)
         setLoadStatus(
           matchingScenario ? '' : 'Scenario was not found in this project',
@@ -64,10 +71,15 @@ export function ScenarioDetailPage() {
       }
     }
 
-    loadScenario()
+    loadScenario(true)
+
+    const intervalId = window.setInterval(() => {
+      loadScenario()
+    }, 3500)
 
     return () => {
       isMounted = false
+      window.clearInterval(intervalId)
     }
   }, [projectId, routeIsIncomplete, scenarioId])
 
@@ -86,6 +98,10 @@ export function ScenarioDetailPage() {
   if (!project || !scenario) {
     return null
   }
+
+  const latestJob = jobs[0] ?? null
+  const latestJobIsActive =
+    latestJob?.status === 'queued' || latestJob?.status === 'running'
 
   return (
     <>
@@ -118,6 +134,56 @@ export function ScenarioDetailPage() {
         </div>
       </section>
 
+      {latestJob ? (
+        <section className="result-panel scenario-job-panel">
+          <h2>Simulation run</h2>
+          <div className="job-status-line">
+            <span className={`tag tag-${latestJob.status}`}>
+              {latestJob.status}
+            </span>
+            <strong>{latestJob.model}</strong>
+          </div>
+          <div className="progress-track">
+            <span
+              className="progress-fill"
+              style={{ width: `${latestJob.progress}%` }}
+            />
+          </div>
+          <p>
+            {latestJobIsActive
+              ? 'The run is being processed. This page refreshes automatically.'
+              : latestJob.status === 'complete'
+                ? 'The latest run has completed and the result summary is available below.'
+                : 'The latest run did not complete. Review the error message and submit another scenario run.'}
+          </p>
+          <dl className="input-summary">
+            <div>
+              <dt>Job</dt>
+              <dd>{latestJob.id}</dd>
+            </div>
+            <div>
+              <dt>Submitted</dt>
+              <dd>{formatDateTime(latestJob.submitted_at)}</dd>
+            </div>
+            <div>
+              <dt>Started</dt>
+              <dd>{latestJob.started_at ? formatDateTime(latestJob.started_at) : '-'}</dd>
+            </div>
+            <div>
+              <dt>Completed</dt>
+              <dd>
+                {latestJob.completed_at
+                  ? formatDateTime(latestJob.completed_at)
+                  : '-'}
+              </dd>
+            </div>
+          </dl>
+          {latestJob.error_message ? (
+            <p className="error-copy">{latestJob.error_message}</p>
+          ) : null}
+        </section>
+      ) : null}
+
       {latestResult ? (
         <section className="report-summary-grid" aria-label="Latest result">
           <div>
@@ -143,8 +209,14 @@ export function ScenarioDetailPage() {
         </section>
       ) : (
         <section className="decision-panel">
-          <h2>No completed result</h2>
-          <p>This scenario has not produced a completed simulation result yet.</p>
+          <h2>
+            {latestJobIsActive ? 'Result pending' : 'No completed result'}
+          </h2>
+          <p>
+            {latestJobIsActive
+              ? 'The simulation has been accepted by the queue. Result metrics will appear here as soon as the worker finishes.'
+              : 'This scenario has not produced a completed simulation result yet.'}
+          </p>
         </section>
       )}
 

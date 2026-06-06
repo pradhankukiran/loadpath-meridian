@@ -848,6 +848,12 @@ td small {
   border-bottom: 1px solid #b1b4b6;
 }
 
+.scenario-run-state h3 {
+  color: #0b0c0c;
+  font-size: 19px;
+  margin: 0 0 10px;
+}
+
 .scenario-run-state ol {
   list-style: none;
   margin: 0;
@@ -871,6 +877,28 @@ td small {
 .scenario-run-state small {
   color: #505a5f;
   font-size: 14px;
+}
+
+.launch-state {
+  margin: 0 0 24px;
+  padding: 16px;
+  border: 2px solid #1d70b8;
+}
+
+.scenario-job-panel {
+  margin-bottom: 28px;
+}
+
+.job-status-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.job-status-line strong {
+  color: #0b0c0c;
 }
 
 .history-list {

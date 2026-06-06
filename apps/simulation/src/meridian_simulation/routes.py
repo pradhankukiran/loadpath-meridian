@@ -8,7 +8,7 @@ from meridian_simulation.catalog import DATA_CONNECTORS, SIMULATION_ENGINES
 from meridian_simulation.comparison import compare_project_scenarios
 from meridian_simulation.connectors import connector_blueprint, import_open_meteo_weather
 from meridian_simulation.data_store import add_dataset, list_datasets
-from meridian_simulation.database import delete_project_records
+from meridian_simulation.database import delete_project_records, scenario_job_records
 from meridian_simulation.job_store import (
     enqueue_job,
     latest_result as get_latest_result,
@@ -137,6 +137,17 @@ def scenario_results(project_id: str, scenario_id: str):
             project_id,
             scenario_id,
             current_app.config["MERIDIAN_SETTINGS"],
+        )
+    }
+
+
+@api.get("/projects/<project_id>/scenarios/<scenario_id>/jobs")
+def scenario_jobs(project_id: str, scenario_id: str):
+    return {
+        "data": scenario_job_records(
+            current_app.config["MERIDIAN_SETTINGS"],
+            project_id,
+            scenario_id,
         )
     }
 

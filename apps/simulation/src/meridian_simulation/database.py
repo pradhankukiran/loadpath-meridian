@@ -203,6 +203,25 @@ def scenario_result_history_records(
         return [result_history_from_row(row) for row in rows]
 
 
+def scenario_job_records(
+    settings: Settings,
+    project_id: str,
+    scenario_id: str,
+    limit: int = 10,
+) -> list[dict]:
+    engine = database_engine(settings.database_url)
+    with engine.connect() as connection:
+        rows = connection.execute(
+            select(simulation_jobs)
+            .where(simulation_jobs.c.project_id == project_id)
+            .where(simulation_jobs.c.scenario_id == scenario_id)
+            .order_by(simulation_jobs.c.submitted_at.desc())
+            .limit(limit)
+        ).mappings()
+
+        return [job_from_row(row) for row in rows]
+
+
 def project_result_records(settings: Settings, project_id: str) -> list[dict]:
     engine = database_engine(settings.database_url)
     with engine.connect() as connection:

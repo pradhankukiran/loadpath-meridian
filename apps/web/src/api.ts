@@ -586,6 +586,22 @@ export async function getRecentSimulationJobs(): Promise<SimulationJob[]> {
   return response.data
 }
 
+export async function getScenarioSimulationJobs(
+  projectId: string,
+  scenarioId: string,
+): Promise<SimulationJob[]> {
+  const response = await getJson<ApiEnvelope<SimulationJob[]>>(
+    `${simulationApiUrl}/projects/${projectId}/scenarios/${scenarioId}/jobs`,
+    {
+      data: fallbackJobs.filter(
+        (job) => job.project_id === projectId && job.scenario_id === scenarioId,
+      ),
+    },
+  )
+
+  return response.data
+}
+
 export async function getDataConnectors(): Promise<DataConnector[]> {
   const response = await getJson<ApiEnvelope<DataConnector[]>>(
     `${simulationApiUrl}/data-connectors`,

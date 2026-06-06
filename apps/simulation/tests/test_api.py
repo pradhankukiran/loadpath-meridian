@@ -138,6 +138,11 @@ def test_simulation_submission_returns_queued_job():
     }
     assert history_response.json["data"][0]["total_cost_million"] is not None
 
+    jobs_response = client.get("/api/projects/prj_nw_grid/scenarios/scn_base/jobs")
+    assert jobs_response.status_code == 200
+    assert jobs_response.json["data"][0]["id"] == response.json["id"]
+    assert jobs_response.json["data"][0]["progress"] == 100
+
 
 def test_project_delete_removes_simulation_records(tmp_path):
     app = create_app(

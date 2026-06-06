@@ -1,6 +1,12 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { createScenario, getProject, submitSimulation, type Project } from '../api'
+import {
+  createScenario,
+  getProject,
+  submitSimulation,
+  type Project,
+  type SimulationJob,
+} from '../api'
 
 const defaultScenarioForm = {
   name: '',
@@ -106,6 +112,8 @@ export function NewScenarioPage() {
   const [loadStatus, setLoadStatus] = useState('Loading project')
   const [submissionStatus, setSubmissionStatus] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [createdScenarioId, setCreatedScenarioId] = useState('')
+  const [queuedJob, setQueuedJob] = useState<SimulationJob | null>(null)
 
   useEffect(() => {
     if (!projectId) {
@@ -141,6 +149,8 @@ export function NewScenarioPage() {
 
     setIsSubmitting(true)
     setSubmissionStatus('Creating scenario')
+    setCreatedScenarioId('')
+    setQueuedJob(null)
 
     try {
       const scenario = await createScenario(projectId, {
@@ -158,9 +168,10 @@ export function NewScenarioPage() {
         },
       })
 
+      setCreatedScenarioId(scenario.id)
       setSubmissionStatus('Queueing simulation')
 
-      await submitSimulation({
+      const job = await submitSimulation({
         project_id: projectId,
         scenario_id: scenario.id,
         engine: scenario.engine,
@@ -171,6 +182,8 @@ export function NewScenarioPage() {
         assumptions: scenario.assumptions,
       })
 
+      setQueuedJob(job)
+      setSubmissionStatus('Simulation queued')
       navigate(`/projects/${projectId}/scenarios/${scenario.id}`)
     } catch {
       setSubmissionStatus('Could not create scenario or queue simulation')
@@ -195,6 +208,61 @@ export function NewScenarioPage() {
 
       <section className="builder-panel" aria-labelledby="scenario-create-heading">
         <h2 id="scenario-create-heading">Scenario configuration</h2>
+        {isSubmitting || submissionStatus ? (
+          <div className="scenario-run-state launch-state" aria-live="polite">
+            <h3>Launching run</h3>
+            <ol>
+              <li>
+                <div>
+                  <strong>Create scenario</strong>
+                  <small>
+                    {createdScenarioId
+                      ? createdScenarioId
+                      : 'Writing scenario configuration'}
+                  </small>
+                </div>
+                <span className={`tag tag-${createdScenarioId ? 'complete' : 'running'}`}>
+                  {createdScenarioId ? 'complete' : 'running'}
+                </span>
+              </li>
+              <li>
+                <div>
+                  <strong>Queue simulation</strong>
+                  <small>
+                    {queuedJob
+                      ? queuedJob.id
+                      : createdScenarioId
+                        ? 'Submitting run to simulation service'
+                        : 'Waiting for scenario'}
+                  </small>
+                </div>
+                <span
+                  className={`tag tag-${
+                    queuedJob ? 'queued' : createdScenarioId ? 'running' : 'draft'
+                  }`}
+                >
+                  {queuedJob ? 'queued' : createdScenarioId ? 'running' : 'waiting'}
+                </span>
+              </li>
+              <li>
+                <div>
+                  <strong>Open run page</strong>
+                  <small>
+                    {queuedJob
+                      ? 'Opening live scenario run status'
+                      : 'This will open when the job is accepted'}
+                  </small>
+                </div>
+                <span className={`tag tag-${queuedJob ? 'running' : 'draft'}`}>
+                  {queuedJob ? 'opening' : 'waiting'}
+                </span>
+              </li>
+            </ol>
+            {submissionStatus ? (
+              <p className="status-message">{submissionStatus}</p>
+            ) : null}
+          </div>
+        ) : null}
         <form onSubmit={handleScenarioSubmit}>
           <div className="form-grid">
             <label>
