@@ -4,7 +4,7 @@ Loadpath Meridian is a cloud-based energy infrastructure modeling, simulation, a
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -17,7 +17,7 @@ Loadpath Meridian is a cloud-based energy infrastructure modeling, simulation, a
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TD
@@ -46,7 +46,7 @@ The application is organized as a production-shaped monorepo:
 
 ---
 
-## ⚡ Energy Engine Adapters
+## Energy Engine Adapters
 
 When simulations are triggered, they compile optimization parameters and run through specialized solver adapters:
 
@@ -58,7 +58,7 @@ When simulations are triggered, they compile optimization parameters and run thr
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
